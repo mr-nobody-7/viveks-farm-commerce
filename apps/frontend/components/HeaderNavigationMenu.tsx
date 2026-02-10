@@ -1,4 +1,4 @@
-    import Link from "next/link"
+import Link from "next/link"
 
 import {
   NavigationMenu,
@@ -20,7 +20,7 @@ export function HeaderNavigationMenu() {
         <Link href="/categories">Categories</Link>
       </NavigationMenuLink>
       <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
-        <Link href="/our-story">Our Story</Link>
+        <Link href="/about-us">About Us</Link>
       </NavigationMenuLink>
       <NavigationMenuLink asChild className={navigationMenuTriggerStyle()}>
         <Link href="/contact-us">Contact Us</Link>
