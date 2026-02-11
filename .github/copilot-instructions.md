@@ -17,6 +17,7 @@ Vivek's Farm Commerce is a full-stack e-commerce platform for selling farm produ
 - **Frontend**: Next.js App Router with TypeScript, Radix UI primitives via Shadcn
 - **Backend**: Express 5, Mongoose for MongoDB, tsx for dev hot-reload
 - **Styling**: Tailwind CSS 4 with `cn()` utility from `clsx` + `tailwind-merge`
+- **State Management**: Zustand for client-side state (cart, etc.)
 
 ## Development Workflows
 
@@ -46,12 +47,29 @@ pnpm format   # Format only
 - **Layout components**: Header/Footer used in [root layout](apps/frontend/app/layout.tsx) for all pages
 - **Path aliases**: Use `@/` for imports (maps to app root via tsconfig paths)
 - **Styling helper**: Always use `cn()` from [lib/utils.ts](apps/frontend/lib/utils.ts) for conditional classes
+- **Client components**: Add `"use client"` directive when using hooks or browser APIs
 
 Example component structure:
 ```tsx
+"use client";
+
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { ICON_SIZE } from "@/lib/constants";
+import { useCartStore } from "@/providers/cart-store-provider";
+```
+
+### State Management with Zustand
+- **Store location**: [lib/stores/](apps/frontend/lib/stores/) - vanilla stores using `zustand/vanilla`
+- **Provider pattern**: Each store has a provider in [providers/](apps/frontend/providers/)
+- **Usage**: Use `useCartStore((state) => state.property)` for selective subscriptions
+- **Cart store**: [cart-store.ts](apps/frontend/lib/stores/cart-store.ts) manages shopping cart state
+- **Root provider**: [CartStoreProvider](apps/frontend/providers/cart-store-provider.tsx) wraps app in [layout.tsx](apps/frontend/app/layout.tsx)
+
+Example Zustand usage:
+```tsx
+const addItem = useCartStore((state) => state.addItem);
+const totalItems = useCartStore((state) => state.getTotalItems());
 ```
 
 ### Backend Patterns
@@ -69,10 +87,13 @@ import { ICON_SIZE } from "@/lib/constants";
 ## Critical File Locations
 
 ### Frontend
-- [components/Header.tsx](apps/frontend/components/Header.tsx): Site navigation + branding
+- [components/Header.tsx](apps/frontend/components/Header.tsx): Site navigation + branding (shows cart count)
 - [components/Footer.tsx](apps/frontend/components/Footer.tsx): Footer with links and WhatsApp contact
+- [components/ProductCard.tsx](apps/frontend/components/ProductCard.tsx): Reusable product display card
 - [lib/constants.ts](apps/frontend/lib/constants.ts): Shared constants (e.g., `ICON_SIZE`)
-- [app/layout.tsx](apps/frontend/app/layout.tsx): Root layout with Header/Footer wrapper
+- [lib/stores/cart-store.ts](apps/frontend/lib/stores/cart-store.ts): Zustand cart state management
+- [providers/cart-store-provider.tsx](apps/frontend/providers/cart-store-provider.tsx): Cart store provider for Next.js
+- [app/layout.tsx](apps/frontend/app/layout.tsx): Root layout with Header/Footer wrapper and providers
 
 ### Backend
 - [src/app.ts](apps/backend/src/app.ts): Express app configuration

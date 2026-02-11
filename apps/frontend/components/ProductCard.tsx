@@ -1,9 +1,12 @@
+"use client";
+
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { ShoppingCart } from "lucide-react";
 import { Product } from "@/lib/data/products";
 import Link from "next/link";
+import { useCartStore } from "@/providers/cart-store-provider";
 
 interface ProductCardProps {
   product: Product;
@@ -11,10 +14,19 @@ interface ProductCardProps {
 
 export const ProductCard = ({ product }: ProductCardProps) => {
   const variant = product.variants[0];
+  const addItem = useCartStore((state) => state.addItem);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
+
+    addItem({
+      productId: product.id,
+      name: product.name,
+      image: product.images[0],
+      weight: variant.weight,
+      sellingPrice: variant.sellingPrice,
+    });
   };
 
   return (
