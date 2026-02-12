@@ -1,65 +1,135 @@
-import Image from "next/image";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { Leaf, Shield, Heart, Truck } from "lucide-react";
+import { ProductCard } from "@/components/ProductCard";
+import { categories } from "@/lib/data/categories";
+import { getFeaturedProducts } from "@/lib/data/products";
+
+const trustPoints = [
+	{
+		icon: Leaf,
+		title: "Farm Fresh",
+		description: "Directly from our fields to your kitchen — no middlemen",
+	},
+	{
+		icon: Shield,
+		title: "No Preservatives",
+		description: "100% natural ingredients, no chemicals or additives",
+	},
+	{
+		icon: Heart,
+		title: "Handmade with Love",
+		description: "Traditional recipes passed down through generations",
+	},
+	{
+		icon: Truck,
+		title: "Pan-India Delivery",
+		description: "We deliver fresh products across India",
+	},
+];
 
 export default function Home() {
-  return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
-        </div>
-      </main>
-    </div>
-  );
+	const featuredProducts = getFeaturedProducts();
+
+	return (
+		<>
+			{/* Hero */}
+			<section className="relative bg-linear-to-br from-primary/10 via-accent to-secondary/30">
+				<div className="container py-20 md:py-32">
+					<div className="max-w-2xl space-y-6">
+						<Badge variant="secondary" className="text-sm px-3 py-1">
+							🌿 100% Natural & Farm Fresh
+						</Badge>
+						<h1 className="text-4xl md:text-6xl font-bold tracking-tight text-foreground">
+							Fresh from our farm to your table
+						</h1>
+						<p className="text-lg text-muted-foreground max-w-lg">
+							Discover pure ghee, handmade pickles, traditional sweets,
+							cold-pressed oils, and more — all crafted with care at Vivek's
+							Farm.
+						</p>
+						<div className="flex gap-3">
+							<Button size="lg" asChild>
+								<Link href="/shop">Shop Now</Link>
+							</Button>
+							<Button size="lg" variant="outline" asChild>
+								<Link href="/our-story">Our Story</Link>
+							</Button>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			{/* Categories */}
+			<section className="container py-16">
+				<div className="text-center mb-10">
+					<h2 className="text-3xl font-bold">Shop by Category</h2>
+					<p className="text-muted-foreground mt-2">
+						Explore our range of farm-fresh products
+					</p>
+				</div>
+				<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
+					{categories.map((cat) => (
+						<Link key={cat.id} href={`/shop/${cat.id}`}>
+							<Card className="group text-center hover:shadow-md hover:border-primary/50 transition-all cursor-pointer">
+								<CardContent className="p-4 space-y-2">
+									<div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
+										<cat.icon className="h-6 w-6" />
+									</div>
+									<p className="text-sm font-medium">{cat.name}</p>
+								</CardContent>
+							</Card>
+						</Link>
+					))}
+				</div>
+			</section>
+
+			{/* Featured Products */}
+			<section className="bg-secondary/30 py-16">
+				<div className="container">
+					<div className="flex items-center justify-between mb-8">
+						<div>
+							<h2 className="text-3xl font-bold">Bestsellers</h2>
+							<p className="text-muted-foreground mt-1">Our most loved products</p>
+						</div>
+						<Button variant="outline" asChild>
+							<Link href="/shop">View All</Link>
+						</Button>
+					</div>
+					<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
+						{featuredProducts.map((product) => (
+							<ProductCard key={product.id} product={product} />
+						))}
+					</div>
+				</div>
+			</section>
+
+			{/* Trust Section */}
+			<section className="container py-16">
+				<div className="text-center mb-10">
+					<h2 className="text-3xl font-bold">Why Vivek's Farm?</h2>
+					<p className="text-muted-foreground mt-2">
+						We believe in quality you can taste
+					</p>
+				</div>
+				<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+					{trustPoints.map((point) => (
+						<Card key={point.title} className="text-center">
+							<CardContent className="p-6 space-y-3">
+								<div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-primary/10 text-primary">
+									<point.icon className="h-7 w-7" />
+								</div>
+								<h3 className="font-semibold">{point.title}</h3>
+								<p className="text-sm text-muted-foreground">
+									{point.description}
+								</p>
+							</CardContent>
+						</Card>
+					))}
+				</div>
+			</section>
+		</>
+	);
 }
