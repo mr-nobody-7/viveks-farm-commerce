@@ -1,6 +1,5 @@
 "use client";
 import { useState, useMemo } from "react";
-import Layout from "@/components/Layout";
 import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";

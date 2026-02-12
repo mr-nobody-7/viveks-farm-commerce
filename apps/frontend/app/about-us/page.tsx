@@ -28,7 +28,7 @@ const About = () => {
   return (
     <>
       {/* Hero */}
-      <section className="bg-gradient-to-br from-primary/10 via-accent to-secondary/30 py-20">
+      <section className="bg-linear-to-br from-primary/10 via-accent to-secondary/30 py-20">
         <div className="container max-w-3xl text-center space-y-4">
           <h1 className="text-4xl md:text-5xl font-bold">Our Story</h1>
           <p className="text-lg text-muted-foreground">
