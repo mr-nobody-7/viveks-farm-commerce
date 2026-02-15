@@ -9,12 +9,19 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
-import { useCart } from "@/providers/cart-store-provider";
+import { useCartStore } from "@/lib/stores/cart-store";
 
 const DELIVERY_CHARGE = 49;
 
 const Checkout = () => {
-  const { items, subtotal, clearCart } = useCart();
+  const items = useCartStore((state) => state.items);
+  const clearCart = useCartStore((state) => state.clearCart);
+  
+  // Derive subtotal from items
+  const subtotal = items.reduce(
+    (sum, item) => sum + item.price * item.quantity,
+    0,
+  );
   const router = useRouter();
   const [payment, setPayment] = useState("upi");
 
@@ -115,13 +122,13 @@ const Checkout = () => {
               <div className="space-y-2 text-sm">
                 {items.map((item) => (
                   <div
-                    key={`${item.productId}-${item.weight}`}
+                    key={`${item.productId}-${item.variantLabel}`}
                     className="flex justify-between"
                   >
-                    <span className="text-muted-foreground truncate pr-2">
-                      {item.name} ({item.weight}) × {item.quantity}
+                    <span className="text-muted-foreground">
+                      {item.name} ({item.variantLabel}) × {item.quantity}
                     </span>
-                    <span>₹{item.sellingPrice * item.quantity}</span>
+                    <span>₹{item.price * item.quantity}</span>
                   </div>
                 ))}
               </div>

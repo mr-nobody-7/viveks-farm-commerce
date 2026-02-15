@@ -1,97 +1,83 @@
-import { createStore } from "zustand/vanilla";
+import { create } from "zustand";
+import { persist } from "zustand/middleware";
 
-export interface CartItem {
+export type CartItem = {
 	productId: string;
+	slug: string;
 	name: string;
 	image: string;
-	weight: string;
-	sellingPrice: number;
+	variantLabel: string;
+	price: number;
 	quantity: number;
-}
-
-export interface CartState {
-	items: CartItem[];
-}
-
-export interface CartActions {
-	addItem: (item: Omit<CartItem, "quantity">) => void;
-	removeItem: (productId: string, weight: string) => void;
-	updateQuantity: (productId: string, weight: string, quantity: number) => void;
-	clearCart: () => void;
-	getTotalItems: () => number;
-	getSubtotal: () => number;
-}
-
-export type CartStore = CartState & CartActions;
-
-export const defaultInitState: CartState = {
-	items: [],
 };
 
-export const createCartStore = (initState: CartState = defaultInitState) => {
-	return createStore<CartStore>()((set, get) => ({
-		...initState,
+export type CartStore = {
+	items: CartItem[];
+	addItem: (item: CartItem) => void;
+	removeItem: (productId: string, variantLabel: string) => void;
+	updateQuantity: (
+		productId: string,
+		variantLabel: string,
+		quantity: number,
+	) => void;
+	clearCart: () => void;
+};
 
-		addItem: (item) => {
-			set((state) => {
-				const existing = state.items.find(
-					(i) => i.productId === item.productId && i.weight === item.weight,
+export const useCartStore = create<CartStore>()(
+	persist(
+		(set, get) => ({
+			items: [],
+
+			addItem: (item) => {
+				const existing = get().items.find(
+					(i) =>
+						i.productId === item.productId &&
+						i.variantLabel === item.variantLabel,
 				);
 
 				if (existing) {
-					return {
-						items: state.items.map((i) =>
-							i.productId === item.productId && i.weight === item.weight
-								? { ...i, quantity: i.quantity + 1 }
+					set({
+						items: get().items.map((i) =>
+							i.productId === item.productId &&
+							i.variantLabel === item.variantLabel
+								? { ...i, quantity: i.quantity + item.quantity }
 								: i,
 						),
-					};
+					});
+				} else {
+					set({ items: [...get().items, item] });
+				}
+			},
+
+			removeItem: (productId, variantLabel) =>
+				set({
+					items: get().items.filter(
+						(i) =>
+							!(
+								i.productId === productId && i.variantLabel === variantLabel
+							),
+					),
+				}),
+
+			updateQuantity: (productId, variantLabel, quantity) => {
+				if (quantity <= 0) {
+					get().removeItem(productId, variantLabel);
+					return;
 				}
 
-				return {
-					items: [...state.items, { ...item, quantity: 1 }],
-				};
-			});
-		},
+				set({
+					items: get().items.map((i) =>
+						i.productId === productId && i.variantLabel === variantLabel
+							? { ...i, quantity }
+							: i,
+					),
+				});
+			},
 
-		removeItem: (productId, weight) => {
-			set((state) => ({
-				items: state.items.filter(
-					(i) => !(i.productId === productId && i.weight === weight),
-				),
-			}));
+			clearCart: () => set({ items: [] }),
+		}),
+		{
+			name: "viveks-farm-cart",
 		},
-
-		updateQuantity: (productId, weight, quantity) => {
-			if (quantity <= 0) {
-				get().removeItem(productId, weight);
-				return;
-			}
-
-			set((state) => ({
-				items: state.items.map((i) =>
-					i.productId === productId && i.weight === weight
-						? { ...i, quantity }
-						: i,
-				),
-			}));
-		},
-
-		clearCart: () => {
-			set({ items: [] });
-		},
-
-		getTotalItems: () => {
-			const state = get();
-			return state.items.reduce((sum, i) => sum + i.quantity, 0);
-		},
-
-		getSubtotal: () => {
-			const state = get();
-			return state.items.reduce(
-				(sum, i) => sum + i.sellingPrice * i.quantity,
-				0,
-			);
-		},
-	}));
-};
+	),
+);

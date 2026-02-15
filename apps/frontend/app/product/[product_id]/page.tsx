@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { ShoppingCart, ArrowLeft } from "lucide-react";
 import type { ProductVariant } from "@/lib/api";
 import { ProductCard } from "@/components/ProductCard";
-import { useCart } from "@/providers/cart-store-provider";
+	import { useCartStore } from "@/lib/stores/cart-store";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
@@ -20,7 +20,7 @@ interface ProductDetailProps {
 export default function ProductDetail({ params }: ProductDetailProps) {
 	const { product_id } = use(params);
 	const router = useRouter();
-	const { addItem } = useCart();
+	const addItem = useCartStore((state) => state.addItem);
 
 	const { data: product, isLoading } = useQuery({
 		queryKey: ["product", product_id],
@@ -67,11 +67,13 @@ export default function ProductDetail({ params }: ProductDetailProps) {
 
 	const handleAddToCart = () => {
 		addItem({
-			productId: product.slug,
+			productId: product._id,
+			slug: product.slug,
 			name: product.name,
 			image: product.images[0] || "/placeholder.svg",
-			weight: selectedVariant.label,
-			sellingPrice: selectedVariant.price,
+			variantLabel: selectedVariant.label,
+			price: selectedVariant.price,
+			quantity: 1,
 		});
 	};
 

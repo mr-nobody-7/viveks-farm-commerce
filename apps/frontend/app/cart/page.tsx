@@ -5,12 +5,20 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
-import { useCart } from "@/providers/cart-store-provider";
+import { useCartStore } from "@/lib/stores/cart-store";
 
 const DELIVERY_CHARGE = 49;
 
 const Cart = () => {
-	const { items, updateQuantity, removeItem, subtotal } = useCart();
+	const items = useCartStore((state) => state.items);
+	const updateQuantity = useCartStore((state) => state.updateQuantity);
+	const removeItem = useCartStore((state) => state.removeItem);
+
+	// Derive subtotal from items
+	const subtotal = items.reduce(
+		(sum, item) => sum + item.price * item.quantity,
+		0,
+	);
 
 	if (items.length === 0) {
 		return (
@@ -37,7 +45,7 @@ const Cart = () => {
 				{/* Cart items */}
 				<div className="lg:col-span-2 space-y-4">
 					{items.map((item) => (
-						<Card key={`${item.productId}-${item.weight}`}>
+						<Card key={`${item.productId}-${item.variantLabel}`}>
 							<CardContent className="p-4 flex gap-4">
 								<div className="h-20 w-20 rounded-md bg-muted overflow-hidden shrink-0">
 									<img
@@ -48,9 +56,9 @@ const Cart = () => {
 								</div>
 								<div className="flex-1 min-w-0">
 									<h3 className="font-semibold truncate">{item.name}</h3>
-									<p className="text-sm text-muted-foreground">{item.weight}</p>
+									<p className="text-sm text-muted-foreground">{item.variantLabel}</p>
 									<p className="text-primary font-bold mt-1">
-										₹{item.sellingPrice}
+										₹{item.price}
 									</p>
 								</div>
 								<div className="flex flex-col items-end gap-2">
@@ -58,7 +66,7 @@ const Cart = () => {
 										variant="ghost"
 										size="icon"
 										className="h-8 w-8 text-destructive"
-										onClick={() => removeItem(item.productId, item.weight)}
+										onClick={() => removeItem(item.productId, item.variantLabel)}
 									>
 										<Trash2 className="h-4 w-4" />
 									</Button>
@@ -70,7 +78,7 @@ const Cart = () => {
 											onClick={() =>
 												updateQuantity(
 													item.productId,
-													item.weight,
+													item.variantLabel,
 													item.quantity - 1,
 												)
 											}
@@ -87,7 +95,7 @@ const Cart = () => {
 											onClick={() =>
 												updateQuantity(
 													item.productId,
-													item.weight,
+													item.variantLabel,
 													item.quantity + 1,
 												)
 											}

@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { ShoppingCart } from "lucide-react";
 import type { Product } from "@/lib/api";
 import Link from "next/link";
-import { useCartStore } from "@/providers/cart-store-provider";
+import { useCartStore } from "@/lib/stores/cart-store";
 
 interface ProductCardProps {
 	product: Product;
@@ -21,11 +21,13 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 		e.stopPropagation();
 
 		addItem({
-			productId: product.slug,
+			productId: product._id,
+			slug: product.slug,
 			name: product.name,
 			image: product.images[0] || "/placeholder.svg",
-			weight: variant.label,
-			sellingPrice: variant.price,
+			variantLabel: variant.label,
+			price: variant.price,
+			quantity: 1,
 		});
 	};
 
