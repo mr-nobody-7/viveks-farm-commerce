@@ -1,11 +1,13 @@
+"use client";
+
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Leaf, Shield, Heart, Truck } from "lucide-react";
 import { ProductCard } from "@/components/ProductCard";
-import { categories } from "@/lib/data/categories";
-import { getFeaturedProducts } from "@/lib/data/products";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
 
 const trustPoints = [
 	{
@@ -31,7 +33,27 @@ const trustPoints = [
 ];
 
 export default function Home() {
-	const featuredProducts = getFeaturedProducts();
+	const { data: products = [], isLoading: productsLoading } = useQuery({
+		queryKey: ["products"],
+		queryFn: api.getProducts,
+	});
+
+	const { data: categories = [], isLoading: categoriesLoading } = useQuery({
+		queryKey: ["categories"],
+		queryFn: api.getCategories,
+	});
+
+	const featuredProducts = products.filter(
+		(p) => p.variants.some((v) => v.isActive),
+	);
+
+	if (productsLoading || categoriesLoading) {
+		return (
+			<div className="container py-20 text-center">
+				<p className="text-muted-foreground">Loading...</p>
+			</div>
+		);
+	}
 
 	return (
 		<>
@@ -72,11 +94,11 @@ export default function Home() {
 				</div>
 				<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
 					{categories.map((cat) => (
-						<Link key={cat.id} href={`/shop/${cat.id}`}>
+						<Link key={cat._id} href={`/shop/${cat.slug}`}>
 							<Card className="group text-center hover:shadow-md hover:border-primary/50 transition-all cursor-pointer">
 								<CardContent className="p-4 space-y-2">
 									<div className="mx-auto flex h-12 w-12 items-center justify-center rounded-full bg-primary/10 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-										<cat.icon className="h-6 w-6" />
+										<Leaf className="h-6 w-6" />
 									</div>
 									<p className="text-sm font-medium">{cat.name}</p>
 								</CardContent>
@@ -100,7 +122,7 @@ export default function Home() {
 					</div>
 					<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 md:gap-6">
 						{featuredProducts.map((product) => (
-							<ProductCard key={product.id} product={product} />
+							<ProductCard key={product._id} product={product} />
 						))}
 					</div>
 				</div>

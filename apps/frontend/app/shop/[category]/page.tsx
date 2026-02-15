@@ -1,43 +1,60 @@
 "use client";
-import { useState, useMemo } from "react";
+import { use, useState, useMemo } from "react";
 import { ProductCard } from "@/components/ProductCard";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
 } from "@/components/ui/select";
-import { categories } from "@/lib/data/categories";
-import { products, getProductsByCategory } from "@/lib/data/products";
 import Link from "next/link";
-import { useParams } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
 
 type SortOption = "default" | "price-asc" | "price-desc";
 
-const Shop = () => {
-  const { category } = useParams<{ category?: string }>();
-  const [sort, setSort] = useState<SortOption>("default");
+interface ShopByCategoryProps {
+	params: Promise<{ category: string }>;
+}
 
-  const filteredProducts = useMemo(() => {
-    let list = category ? getProductsByCategory(category) : products;
-    if (sort === "price-asc") {
-      list = [...list].sort(
-        (a, b) => a.variants[0].sellingPrice - b.variants[0].sellingPrice,
-      );
-    } else if (sort === "price-desc") {
-      list = [...list].sort(
-        (a, b) => b.variants[0].sellingPrice - a.variants[0].sellingPrice,
-      );
-    }
-    return list;
-  }, [category, sort]);
+export default function ShopByCategory({ params }: ShopByCategoryProps) {
+	const { category } = use(params);
+	const [sort, setSort] = useState<SortOption>("default");
 
-  const currentCategory = categories.find((c) => c.id === category);
+	const { data: products = [], isLoading: productsLoading } = useQuery({
+		queryKey: ["products", "category", category],
+		queryFn: () => api.getProductsByCategory(category),
+	});
 
-  return (
+	const { data: categories = [], isLoading: categoriesLoading } = useQuery({
+		queryKey: ["categories"],
+		queryFn: api.getCategories,
+	});
+
+	const filteredProducts = useMemo(() => {
+		let list = [...products];
+		if (sort === "price-asc") {
+			list = list.sort((a, b) => a.variants[0].price - b.variants[0].price);
+		} else if (sort === "price-desc") {
+			list = list.sort((a, b) => b.variants[0].price - a.variants[0].price);
+		}
+		return list;
+	}, [products, sort]);
+
+	const currentCategory = categories.find((c) => c.slug === category);
+
+	if (productsLoading || categoriesLoading) {
+		return (
+			<div className="container py-20 text-center">
+				<p className="text-muted-foreground">Loading...</p>
+			</div>
+		);
+	}
+
+	return (
     <div className="container py-8">
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
@@ -69,16 +86,16 @@ const Shop = () => {
                 All
               </Badge>
             </Link>
-            {categories.map((cat: any) => (
-              <Link key={cat.id} href={`/shop/${cat.id}`}>
-                <Badge
-                  variant={category === cat.id ? "default" : "outline"}
-                  className="cursor-pointer"
-                >
-                  {cat.name}
-                </Badge>
-              </Link>
-            ))}
+						{categories.map((cat) => (
+							<Link key={cat._id} href={`/shop/${cat.slug}`}>
+								<Badge
+									variant={category === cat.slug ? "default" : "outline"}
+									className="cursor-pointer"
+								>
+									{cat.name}
+								</Badge>
+							</Link>
+						))}
           </div>
         </aside>
 
@@ -105,11 +122,11 @@ const Shop = () => {
           </div>
 
           {filteredProducts.length > 0 ? (
-            <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-              {filteredProducts.map((product: any) => (
-                <ProductCard key={product.id} product={product} />
-              ))}
-            </div>
+					<div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+						{filteredProducts.map((product) => (
+							<ProductCard key={product._id} product={product} />
+						))}
+					</div>
           ) : (
             <div className="text-center py-20">
               <p className="text-muted-foreground">
@@ -121,9 +138,7 @@ const Shop = () => {
             </div>
           )}
         </div>
-      </div>
-    </div>
-  );
-};
-
-export default Shop;
+		</div>
+	</div>
+	);
+}

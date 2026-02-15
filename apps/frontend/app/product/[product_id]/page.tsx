@@ -6,14 +6,12 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { ShoppingCart, ArrowLeft } from "lucide-react";
-import {
-	getProductById,
-	getProductsByCategory,
-	type ProductVariant,
-} from "@/lib/data/products";
+import type { ProductVariant } from "@/lib/api";
 import { ProductCard } from "@/components/ProductCard";
 import { useCart } from "@/providers/cart-store-provider";
 import { useRouter } from "next/navigation";
+import { useQuery } from "@tanstack/react-query";
+import { api } from "@/lib/api";
 
 interface ProductDetailProps {
 	params: Promise<{ product_id: string }>;
@@ -23,10 +21,38 @@ export default function ProductDetail({ params }: ProductDetailProps) {
 	const { product_id } = use(params);
 	const router = useRouter();
 	const { addItem } = useCart();
-	const product = getProductById(product_id || "");
+
+	const { data: product, isLoading } = useQuery({
+		queryKey: ["product", product_id],
+		queryFn: () => api.getProductBySlug(product_id),
+	});
+
 	const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
-		product ? product.variants[0] : null,
+		null,
 	);
+
+	// Set default variant when product loads
+	if (product && !selectedVariant && product.variants.length > 0) {
+		setSelectedVariant(product.variants[0]);
+	}
+
+	const { data: relatedProducts = [] } = useQuery({
+		queryKey: ["products", "category", product?.category.slug],
+		queryFn: () => api.getProductsByCategory(product!.category.slug),
+		enabled: !!product,
+	});
+
+	const filteredRelatedProducts = relatedProducts
+		.filter((p) => p.slug !== product_id)
+		.slice(0, 4);
+
+	if (isLoading) {
+		return (
+			<div className="container py-20 text-center">
+				<p className="text-muted-foreground">Loading...</p>
+			</div>
+		);
+	}
 
 	if (!product || !selectedVariant) {
 		return (
@@ -39,17 +65,13 @@ export default function ProductDetail({ params }: ProductDetailProps) {
 		);
 	}
 
-	const relatedProducts = getProductsByCategory(product.category)
-		.filter((p) => p.id !== product.id)
-		.slice(0, 4);
-
 	const handleAddToCart = () => {
 		addItem({
-			productId: product.id,
+			productId: product.slug,
 			name: product.name,
-			image: product.images[0],
-			weight: selectedVariant.weight,
-			sellingPrice: selectedVariant.sellingPrice,
+			image: product.images[0] || "/placeholder.svg",
+			weight: selectedVariant.label,
+			sellingPrice: selectedVariant.price,
 		});
 	};
 
@@ -58,11 +80,13 @@ export default function ProductDetail({ params }: ProductDetailProps) {
 		router.push("/cart");
 	};
 
-	const discount = Math.round(
-		((selectedVariant.actualPrice - selectedVariant.sellingPrice) /
-			selectedVariant.actualPrice) *
-			100,
-	);
+	const discount = selectedVariant.originalPrice
+		? Math.round(
+				((selectedVariant.originalPrice - selectedVariant.price) /
+					selectedVariant.originalPrice) *
+					100,
+			)
+		: 0;
 
 	return (
 		<div className="container py-8">
@@ -89,21 +113,25 @@ export default function ProductDetail({ params }: ProductDetailProps) {
 				<div className="space-y-6">
 					<div>
 						<Badge variant="secondary" className="mb-2">
-							{product.category}
+							{product.category.name}
 						</Badge>
 						<h1 className="text-3xl font-bold">{product.name}</h1>
 					</div>
 
 					<div className="flex items-baseline gap-3">
 						<span className="text-3xl font-bold text-primary">
-							₹{selectedVariant.sellingPrice}
+							₹{selectedVariant.price}
 						</span>
-						<span className="text-lg text-muted-foreground line-through">
-							₹{selectedVariant.actualPrice}
-						</span>
-						<Badge variant="destructive" className="text-xs">
-							{discount}% OFF
-						</Badge>
+						{selectedVariant.originalPrice && (
+							<>
+								<span className="text-lg text-muted-foreground line-through">
+									₹{selectedVariant.originalPrice}
+								</span>
+								<Badge variant="destructive" className="text-xs">
+									{discount}% OFF
+								</Badge>
+							</>
+						)}
 					</div>
 
 					{/* Variant selector */}
@@ -112,14 +140,12 @@ export default function ProductDetail({ params }: ProductDetailProps) {
 						<div className="flex gap-2 flex-wrap">
 							{product.variants.map((v) => (
 								<Button
-									key={v.weight}
-									variant={
-										selectedVariant.weight === v.weight ? "default" : "outline"
-									}
+									key={v.label}
+									variant={selectedVariant.label === v.label ? "default" : "outline"}
 									size="sm"
 									onClick={() => setSelectedVariant(v)}
 								>
-									{v.weight}
+									{v.label}
 								</Button>
 							))}
 						</div>
@@ -143,16 +169,9 @@ export default function ProductDetail({ params }: ProductDetailProps) {
 					<Separator />
 
 					<div className="space-y-3 text-sm">
-						<p className="text-muted-foreground">{product.description}</p>
-						<div className="grid grid-cols-2 gap-2">
-							<div>
-								<span className="font-medium">Ingredients:</span>
-								<p className="text-muted-foreground">{product.ingredients}</p>
-							</div>
-							<div>
-								<span className="font-medium">Shelf Life:</span>
-								<p className="text-muted-foreground">{product.shelfLife}</p>
-							</div>
+						<div>
+							<span className="font-medium">Description:</span>
+							<p className="text-muted-foreground mt-1">{product.description}</p>
 						</div>
 					</div>
 				</div>
@@ -163,9 +182,12 @@ export default function ProductDetail({ params }: ProductDetailProps) {
 				<section className="mt-16">
 					<h2 className="text-2xl font-bold mb-6">You might also like</h2>
 					<div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-						{relatedProducts.map((p) => (
-							<ProductCard key={p.id} product={p} />
-						))}
+						{relatedProducts
+							.filter((p) => p.slug !== product.slug)
+							.slice(0, 4)
+							.map((p) => (
+								<ProductCard key={p.slug} product={p} />
+							))}
 					</div>
 				</section>
 			)}
