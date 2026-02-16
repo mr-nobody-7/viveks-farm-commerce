@@ -56,4 +56,29 @@ export const api = {
 		if (!res.ok) throw new Error("Failed to fetch products");
 		return res.json();
 	},
+
+	// Auth endpoints
+	async requestOTP(mobile: string): Promise<{ message: string; otp?: string }> {
+		const res = await fetch(`${API_URL}/auth/request-otp`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			body: JSON.stringify({ mobile }),
+		});
+		if (!res.ok) throw new Error("Failed to request OTP");
+		return res.json();
+	},
+
+	async verifyOTP(
+		mobile: string,
+		otp: string,
+	): Promise<{ message: string; user: any }> {
+		const res = await fetch(`${API_URL}/auth/verify-otp`, {
+			method: "POST",
+			headers: { "Content-Type": "application/json" },
+			credentials: "include",
+			body: JSON.stringify({ mobile, otp }),
+		});
+		if (!res.ok) throw new Error("Invalid OTP");
+		return res.json();
+	},
 };

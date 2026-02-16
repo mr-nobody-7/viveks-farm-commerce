@@ -1,15 +1,18 @@
+import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
 import mongoose from "mongoose";
-import productRoutes from "./routes/product.route";
-import cookieParser from "cookie-parser";
 import authRoutes from "./routes/auth.route";
-
-
+import productRoutes from "./routes/product.route";
 
 const app = express();
 
-app.use(cors());
+app.use(
+	cors({
+		origin: "http://localhost:3000",
+		credentials: true,
+	}),
+);
 app.use(express.json());
 app.use(cookieParser());
 app.use("/api", productRoutes);
