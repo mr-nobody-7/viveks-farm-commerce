@@ -15,6 +15,7 @@ import { Loader2 } from "lucide-react";
 
 const DELIVERY_CHARGE = 49;
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+const ENABLE_COD = process.env.NEXT_PUBLIC_ENABLE_COD === "true";
 
 const Checkout = () => {
   const items = useCartStore((state) => state.items);
@@ -27,7 +28,7 @@ const Checkout = () => {
     0,
   );
   const router = useRouter();
-  const [payment, setPayment] = useState("upi");
+  const [payment, setPayment] = useState("ONLINE");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -67,6 +68,7 @@ const Checkout = () => {
     };
 
     try {
+      // Create order with payment method
       const response = await fetch(`${API_URL}/orders`, {
         method: "POST",
         credentials: "include",
@@ -74,6 +76,7 @@ const Checkout = () => {
         body: JSON.stringify({
           items,
           address,
+          paymentMethod: payment,
         }),
       });
 
@@ -82,11 +85,63 @@ const Checkout = () => {
       }
 
       const data = await response.json();
-      clearCart();
-      router.push(`/order-success/${data.orderId}`);
+      const orderId = data.orderId;
+
+      // If COD, just redirect to success page
+      if (payment === "COD") {
+        clearCart();
+        router.push(`/order-success/${orderId}`);
+        return;
+      }
+
+      // If ONLINE, initiate Razorpay payment
+      const paymentResponse = await fetch(`${API_URL}/payments/create-order`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ orderId }),
+      });
+
+      if (!paymentResponse.ok) {
+        throw new Error("Failed to create payment");
+      }
+
+      const paymentData = await paymentResponse.json();
+
+      const options = {
+        key: paymentData.key,
+        amount: paymentData.amount,
+        currency: paymentData.currency,
+        order_id: paymentData.razorpayOrderId,
+        name: "Vivek's Farm",
+        description: "Farm Fresh Products",
+        handler: async function (response: any) {
+          try {
+            await fetch(`${API_URL}/payments/verify`, {
+              method: "POST",
+              credentials: "include",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify(response),
+            });
+
+            clearCart();
+            router.push(`/order-success/${orderId}`);
+          } catch (err) {
+            setError("Payment verification failed");
+            setLoading(false);
+          }
+        },
+        modal: {
+          ondismiss: function () {
+            setLoading(false);
+          },
+        },
+      };
+
+      const rzp = new (window as any).Razorpay(options);
+      rzp.open();
     } catch (err) {
       setError("Failed to place order. Please try again.");
-    } finally {
       setLoading(false);
     }
   };
@@ -157,20 +212,16 @@ const Checkout = () => {
               <CardContent className="p-6 space-y-4">
                 <h3 className="font-semibold text-lg">Payment Method</h3>
                 <RadioGroup value={payment} onValueChange={setPayment}>
-                  {[
-                    { value: "upi", label: "UPI" },
-                    { value: "credit", label: "Credit Card" },
-                    { value: "debit", label: "Debit Card" },
-                    { value: "cod", label: "Cash on Delivery" },
-                  ].map((opt) => (
-                    <div
-                      key={opt.value}
-                      className="flex items-center space-x-2"
-                    >
-                      <RadioGroupItem value={opt.value} id={opt.value} />
-                      <Label htmlFor={opt.value}>{opt.label}</Label>
+                  <div className="flex items-center space-x-2">
+                    <RadioGroupItem value="ONLINE" id="online" />
+                    <Label htmlFor="online">Online Payment (UPI/Card/NetBanking)</Label>
+                  </div>
+                  {ENABLE_COD && (
+                    <div className="flex items-center space-x-2">
+                      <RadioGroupItem value="COD" id="cod" />
+                      <Label htmlFor="cod">Cash on Delivery</Label>
                     </div>
-                  ))}
+                  )}
                 </RadioGroup>
               </CardContent>
             </Card>
