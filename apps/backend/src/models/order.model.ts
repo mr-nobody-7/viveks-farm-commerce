@@ -24,6 +24,10 @@ export interface IOrder extends Document {
 	totalAmount: number;
 	address: IAddress;
 	status: "PLACED" | "PACKED" | "SHIPPED" | "DELIVERED";
+	paymentMethod: "ONLINE" | "COD";
+	paymentStatus: "PENDING" | "PAID" | "FAILED";
+	razorpayOrderId?: string;
+	razorpayPaymentId?: string;
 	createdAt: Date;
 }
 
@@ -62,6 +66,18 @@ const orderSchema = new Schema<IOrder>(
 			enum: ["PLACED", "PACKED", "SHIPPED", "DELIVERED"],
 			default: "PLACED",
 		},
+		paymentMethod: {
+			type: String,
+			enum: ["ONLINE", "COD"],
+			required: true,
+		},
+		paymentStatus: {
+			type: String,
+			enum: ["PENDING", "PAID", "FAILED"],
+			default: "PENDING",
+		},
+		razorpayOrderId: String,
+		razorpayPaymentId: String,
 	},
 	{ timestamps: true },
 );
