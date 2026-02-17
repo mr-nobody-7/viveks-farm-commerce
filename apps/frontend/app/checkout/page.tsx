@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -10,12 +10,16 @@ import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Separator } from "@/components/ui/separator";
 import { useCartStore } from "@/lib/stores/cart-store";
+import { useAuthStore } from "@/lib/stores/auth-store";
+import { Loader2 } from "lucide-react";
 
 const DELIVERY_CHARGE = 49;
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
 
 const Checkout = () => {
   const items = useCartStore((state) => state.items);
   const clearCart = useCartStore((state) => state.clearCart);
+  const user = useAuthStore((state) => state.user);
   
   // Derive subtotal from items
   const subtotal = items.reduce(
@@ -24,6 +28,15 @@ const Checkout = () => {
   );
   const router = useRouter();
   const [payment, setPayment] = useState("upi");
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+
+  // Login enforcement
+  useEffect(() => {
+    if (!user) {
+      router.push("/");
+    }
+  }, [user, router]);
 
   if (items.length === 0) {
     return (
@@ -38,10 +51,44 @@ const Checkout = () => {
 
   const total = subtotal + DELIVERY_CHARGE;
 
-  const handlePlaceOrder = (e: React.FormEvent) => {
+  const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
-    clearCart();
-    router.push("/order-confirmation");
+    setError("");
+    setLoading(true);
+
+    const formData = new FormData(e.target as HTMLFormElement);
+    const address = {
+      fullName: formData.get("name") as string,
+      phone: formData.get("phone") as string,
+      addressLine: formData.get("address") as string,
+      city: formData.get("city") as string,
+      state: formData.get("state") as string,
+      pincode: formData.get("pincode") as string,
+    };
+
+    try {
+      const response = await fetch(`${API_URL}/orders`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          items,
+          address,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to place order");
+      }
+
+      const data = await response.json();
+      clearCart();
+      router.push(`/order-success/${data.orderId}`);
+    } catch (err) {
+      setError("Failed to place order. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -59,17 +106,25 @@ const Checkout = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Full Name</Label>
-                    <Input id="name" required placeholder="Your full name" />
+                    <Input id="name" name="name" required placeholder="Your full name" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="phone">Phone Number</Label>
-                    <Input id="phone" required placeholder="+91 98765 43210" />
+                    <Input
+                      id="phone"
+                      name="phone"
+                      type="tel"
+                      required
+                      placeholder="9876543210"
+                      pattern="[0-9]{10}"
+                    />
                   </div>
                 </div>
                 <div className="space-y-2">
                   <Label htmlFor="address">Address</Label>
                   <Input
                     id="address"
+                    name="address"
                     required
                     placeholder="House/Flat, Street"
                   />
@@ -77,15 +132,21 @@ const Checkout = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="city">City</Label>
-                    <Input id="city" required placeholder="City" />
+                    <Input id="city" name="city" required placeholder="City" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="state">State</Label>
-                    <Input id="state" required placeholder="State" />
+                    <Input id="state" name="state" required placeholder="State" />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="pincode">Pincode</Label>
-                    <Input id="pincode" required placeholder="500001" />
+                    <Input
+                      id="pincode"
+                      name="pincode"
+                      required
+                      placeholder="500001"
+                      pattern="[0-9]{6}"
+                    />
                   </div>
                 </div>
               </CardContent>
@@ -148,8 +209,16 @@ const Checkout = () => {
                 <span>Total</span>
                 <span className="text-primary">₹{total}</span>
               </div>
-              <Button type="submit" className="w-full" size="lg">
-                Place Order
+              {error && <p className="text-sm text-destructive">{error}</p>}
+              <Button type="submit" className="w-full" size="lg" disabled={loading}>
+                {loading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Placing Order...
+                  </>
+                ) : (
+                  "Place Order"
+                )}
               </Button>
             </CardContent>
           </Card>

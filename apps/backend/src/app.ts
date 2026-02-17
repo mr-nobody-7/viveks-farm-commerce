@@ -3,6 +3,7 @@ import cors from "cors";
 import express from "express";
 import mongoose from "mongoose";
 import authRoutes from "./routes/auth.route";
+import orderRoutes from "./routes/order.route";
 import productRoutes from "./routes/product.route";
 
 const app = express();
@@ -17,6 +18,7 @@ app.use(express.json());
 app.use(cookieParser());
 app.use("/api", productRoutes);
 app.use("/api", authRoutes);
+app.use("/api", orderRoutes);
 
 app.get("/health", (_req, res) => {
 	const dbState = mongoose.connection.readyState;

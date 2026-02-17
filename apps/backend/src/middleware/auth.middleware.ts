@@ -1,29 +1,30 @@
-import { Request, Response, NextFunction } from "express";
+import type { NextFunction, Request, Response } from "express";
 import jwt from "jsonwebtoken";
 
 export interface AuthRequest extends Request {
-  userId?: string;
+	userId?: string;
 }
 
 export const requireAuth = (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
+	req: AuthRequest,
+	res: Response,
+	next: NextFunction,
 ) => {
-  const token = req.cookies.token;
+	const token = req.cookies.token;
 
-  if (!token) {
-    return res.status(401).json({ message: "Unauthorized" });
-  }
+	if (!token) {
+		return res.status(401).json({ message: "Unauthorized" });
+	}
 
-  try {
-    const decoded = jwt.verify(token, process.env.JWT_SECRET!) as {
-      userId: string;
-    };
+	try {
+		const secret = process.env.JWT_SECRET || "fallback-secret-key";
+		const decoded = jwt.verify(token, secret) as {
+			userId: string;
+		};
 
-    req.userId = decoded.userId;
-    next();
-  } catch {
-    return res.status(401).json({ message: "Invalid token" });
-  }
+		req.userId = decoded.userId;
+		next();
+	} catch {
+		return res.status(401).json({ message: "Invalid token" });
+	}
 };
