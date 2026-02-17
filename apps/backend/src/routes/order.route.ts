@@ -5,10 +5,16 @@ import { Order } from "../models/order.model";
 const router = Router();
 
 router.post("/orders", requireAuth, async (req: AuthRequest, res) => {
-	const { items, address } = req.body;
+	const { items, address, paymentMethod } = req.body;
 
 	if (!items || items.length === 0) {
 		return res.status(400).json({ message: "Cart is empty" });
+	}
+
+	const enableCOD = process.env.ENABLE_COD === "true";
+
+	if (paymentMethod === "COD" && !enableCOD) {
+		return res.status(400).json({ message: "COD not allowed" });
 	}
 
 	const totalAmount = items.reduce(
@@ -22,7 +28,9 @@ router.post("/orders", requireAuth, async (req: AuthRequest, res) => {
 		items,
 		totalAmount,
 		address,
-		status: "PLACED",
+		paymentMethod,
+		paymentStatus: paymentMethod === "COD" ? "PENDING" : "PENDING",
+		status: paymentMethod === "COD" ? "PLACED" : "PENDING",
 	});
 
 	res.status(201).json({
