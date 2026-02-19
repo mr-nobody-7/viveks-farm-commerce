@@ -1,0 +1,261 @@
+"use client";
+
+import { Button } from "@/components/ui/button";
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+
+interface Category {
+	_id: string;
+	name: string;
+	description: string;
+	isActive: boolean;
+}
+
+export default function AdminCategoriesPage() {
+	const [categories, setCategories] = useState<Category[]>([]);
+	const [loading, setLoading] = useState(true);
+	const [showModal, setShowModal] = useState(false);
+	const [editingCategory, setEditingCategory] = useState<Category | null>(
+		null,
+	);
+	const [formData, setFormData] = useState({ name: "", description: "" });
+	const router = useRouter();
+
+	const fetchCategories = async () => {
+		try {
+			const res = await fetch("http://localhost:4000/api/admin/categories", {
+				credentials: "include",
+			});
+
+			if (!res.ok) {
+				if (res.status === 401) {
+					router.push("/admin/login");
+					return;
+				}
+				throw new Error("Failed to fetch categories");
+			}
+
+			const data = await res.json();
+			setCategories(data);
+		} catch (err) {
+			console.error("Error fetching categories:", err);
+		} finally {
+			setLoading(false);
+		}
+	};
+
+	useEffect(() => {
+		fetchCategories();
+	}, [router]);
+
+	const handleOpenModal = (category?: Category) => {
+		if (category) {
+			setEditingCategory(category);
+			setFormData({ name: category.name, description: category.description });
+		} else {
+			setEditingCategory(null);
+			setFormData({ name: "", description: "" });
+		}
+		setShowModal(true);
+	};
+
+	const handleCloseModal = () => {
+		setShowModal(false);
+		setEditingCategory(null);
+		setFormData({ name: "", description: "" });
+	};
+
+	const handleSubmit = async (e: React.FormEvent) => {
+		e.preventDefault();
+
+		try {
+			const url = editingCategory
+				? `http://localhost:4000/api/admin/categories/${editingCategory._id}`
+				: "http://localhost:4000/api/admin/categories";
+
+			const res = await fetch(url, {
+				method: editingCategory ? "PATCH" : "POST",
+				headers: { "Content-Type": "application/json" },
+				credentials: "include",
+				body: JSON.stringify(formData),
+			});
+
+			if (!res.ok) throw new Error("Failed to save category");
+
+			await fetchCategories();
+			handleCloseModal();
+		} catch (err) {
+			console.error("Error saving category:", err);
+			alert("Failed to save category");
+		}
+	};
+
+	const handleToggleActive = async (categoryId: string, isActive: boolean) => {
+		try {
+			const res = await fetch(
+				`http://localhost:4000/api/admin/categories/${categoryId}`,
+				{
+					method: "PATCH",
+					headers: { "Content-Type": "application/json" },
+					credentials: "include",
+					body: JSON.stringify({ isActive: !isActive }),
+				},
+			);
+
+			if (!res.ok) throw new Error("Failed to update category");
+
+			await fetchCategories();
+		} catch (err) {
+			console.error("Error toggling category:", err);
+			alert("Failed to update category");
+		}
+	};
+
+	if (loading) {
+		return (
+			<div className="flex items-center justify-center min-h-[400px]">
+				<p className="text-gray-500">Loading categories...</p>
+			</div>
+		);
+	}
+
+	return (
+		<div className="space-y-6">
+			<div className="flex justify-between items-center">
+				<h1 className="text-3xl font-bold">Categories</h1>
+				<Button onClick={() => handleOpenModal()}>Add Category</Button>
+			</div>
+
+			{/* Categories Table */}
+			<div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+				<table className="min-w-full divide-y divide-gray-200">
+					<thead className="bg-gray-50">
+						<tr>
+							<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+								Name
+							</th>
+							<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+								Description
+							</th>
+							<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+								Status
+							</th>
+							<th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+								Actions
+							</th>
+						</tr>
+					</thead>
+					<tbody className="bg-white divide-y divide-gray-200">
+						{categories.map((category) => (
+							<tr key={category._id}>
+								<td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+									{category.name}
+								</td>
+								<td className="px-6 py-4 text-sm text-gray-500">
+									{category.description}
+								</td>
+								<td className="px-6 py-4 whitespace-nowrap">
+									<span
+										className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+											category.isActive
+												? "bg-green-100 text-green-800"
+												: "bg-red-100 text-red-800"
+										}`}
+									>
+										{category.isActive ? "Active" : "Disabled"}
+									</span>
+								</td>
+								<td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+									<button
+										type="button"
+										onClick={() => handleOpenModal(category)}
+										className="text-blue-600 hover:text-blue-900"
+									>
+										Edit
+									</button>
+									<button
+										type="button"
+										onClick={() =>
+											handleToggleActive(category._id, category.isActive)
+										}
+										className={
+											category.isActive
+												? "text-red-600 hover:text-red-900"
+												: "text-green-600 hover:text-green-900"
+										}
+									>
+										{category.isActive ? "Disable" : "Enable"}
+									</button>
+								</td>
+							</tr>
+						))}
+					</tbody>
+				</table>
+			</div>
+
+			{/* Modal */}
+			{showModal && (
+				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+					<div className="bg-white rounded-lg p-6 w-full max-w-md">
+						<h2 className="text-xl font-bold mb-4">
+							{editingCategory ? "Edit Category" : "Add Category"}
+						</h2>
+
+						<form onSubmit={handleSubmit} className="space-y-4">
+							<div>
+								<label
+									htmlFor="name"
+									className="block text-sm font-medium text-gray-700"
+								>
+									Name
+								</label>
+								<input
+									id="name"
+									type="text"
+									required
+									value={formData.name}
+									onChange={(e) =>
+										setFormData({ ...formData, name: e.target.value })
+									}
+									className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+								/>
+							</div>
+
+							<div>
+								<label
+									htmlFor="description"
+									className="block text-sm font-medium text-gray-700"
+								>
+									Description
+								</label>
+								<textarea
+									id="description"
+									required
+									value={formData.description}
+									onChange={(e) =>
+										setFormData({ ...formData, description: e.target.value })
+									}
+									rows={3}
+									className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+								/>
+							</div>
+
+							<div className="flex justify-end space-x-3 mt-6">
+								<Button
+									type="button"
+									variant="outline"
+									onClick={handleCloseModal}
+								>
+									Cancel
+								</Button>
+								<Button type="submit">
+									{editingCategory ? "Update" : "Create"}
+								</Button>
+							</div>
+						</form>
+					</div>
+				</div>
+			)}
+		</div>
+	);
+}
