@@ -6,6 +6,7 @@ import authRoutes from "./routes/auth.route";
 import orderRoutes from "./routes/order.route";
 import paymentRoutes from "./routes/payment.route";
 import productRoutes from "./routes/product.route";
+import userRoutes from "./routes/user.route";
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use("/api", productRoutes);
 app.use("/api", authRoutes);
 app.use("/api", orderRoutes);
 app.use("/api", paymentRoutes);
+app.use("/api", userRoutes);
 
 app.get("/health", (_req, res) => {
 	const dbState = mongoose.connection.readyState;

@@ -4,6 +4,27 @@ import { Order } from "../models/order.model";
 
 const router = Router();
 
+router.get("/orders/user", requireAuth, async (req: AuthRequest, res) => {
+	const orders = await Order.find({ user: req.userId })
+		.sort({ createdAt: -1 })
+		.lean();
+
+	res.json(orders);
+});
+
+router.get("/orders/:id", requireAuth, async (req: AuthRequest, res) => {
+	const order = await Order.findOne({
+		_id: req.params.id,
+		user: req.userId,
+	}).lean();
+
+	if (!order) {
+		return res.status(404).json({ message: "Order not found" });
+	}
+
+	res.json(order);
+});
+
 router.post("/orders", requireAuth, async (req: AuthRequest, res) => {
 	const { items, address, paymentMethod } = req.body;
 
