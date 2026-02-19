@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { HeaderNavigationMenu } from "./HeaderNavigationMenu";
 import Image from "next/image";
-import { Leaf, ShoppingCart, User, LogOut } from "lucide-react";
+import { Leaf, ShoppingCart, User, LogOut, Package, UserCircle } from "lucide-react";
 import { ICON_SIZE } from "@/lib/constants";
 import { Button } from "./ui/button";
 import { useCartStore } from "@/lib/stores/cart-store";
@@ -54,8 +54,19 @@ export const Header = () => {
 								<DropdownMenuLabel>
 									{user.name || user.mobile}
 								</DropdownMenuLabel>
-								<DropdownMenuSeparator />
-								<DropdownMenuItem onClick={handleLogout}>
+								<DropdownMenuSeparator />							<DropdownMenuItem asChild>
+								<Link href="/profile">
+									<UserCircle className="mr-2 h-4 w-4" />
+									Profile
+								</Link>
+							</DropdownMenuItem>
+							<DropdownMenuItem asChild>
+								<Link href="/profile/orders">
+									<Package className="mr-2 h-4 w-4" />
+									My Orders
+								</Link>
+							</DropdownMenuItem>
+							<DropdownMenuSeparator />								<DropdownMenuItem onClick={handleLogout}>
 									<LogOut className="mr-2 h-4 w-4" />
 									Logout
 								</DropdownMenuItem>
