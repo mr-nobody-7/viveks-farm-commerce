@@ -8,6 +8,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { Package } from "lucide-react";
+import { OrderCardSkeleton } from "@/components/Skeletons";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
 
@@ -71,8 +72,16 @@ const Orders = () => {
 
 	if (loading) {
 		return (
-			<div className="container py-20 text-center">
-				<p className="text-muted-foreground">Loading orders...</p>
+			<div className="container py-8 max-w-4xl">
+				<div className="flex items-center justify-between mb-8">
+					<div className="h-10 bg-gray-200 rounded w-48 animate-pulse" />
+					<div className="h-10 bg-gray-200 rounded w-32 animate-pulse" />
+				</div>
+				<div className="space-y-4">
+					{[1, 2, 3].map((i) => (
+						<OrderCardSkeleton key={i} />
+					))}
+				</div>
 			</div>
 		);
 	}

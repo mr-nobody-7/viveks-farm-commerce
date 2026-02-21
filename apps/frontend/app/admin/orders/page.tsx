@@ -3,6 +3,8 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { Package } from "lucide-react";
+import { OrderCardSkeleton } from "@/components/Skeletons";
 
 interface User {
 	_id: string;
@@ -77,8 +79,16 @@ export default function AdminOrdersPage() {
 
 	if (loading) {
 		return (
-			<div className="flex items-center justify-center min-h-[400px]">
-				<p className="text-gray-500">Loading orders...</p>
+			<div className="space-y-6">
+				<div className="flex justify-between items-center">
+					<div className="h-10 bg-gray-200 rounded w-32 animate-pulse" />
+					<div className="h-6 bg-gray-200 rounded w-24 animate-pulse" />
+				</div>
+				<div className="space-y-4">
+					{[1, 2, 3, 4].map((i) => (
+						<OrderCardSkeleton key={i} />
+					))}
+				</div>
 			</div>
 		);
 	}
@@ -92,10 +102,18 @@ export default function AdminOrdersPage() {
 				</div>
 			</div>
 
-			{/* Orders Table */}
-			<div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-				<div className="overflow-x-auto">
-					<table className="min-w-full divide-y divide-gray-200">
+			{orders.length === 0 ? (
+				<div className="bg-white rounded-lg border border-gray-200 p-12 text-center space-y-4">
+					<Package className="h-16 w-16 mx-auto text-gray-400" />
+					<h3 className="text-xl font-semibold text-gray-700">No orders yet</h3>
+					<p className="text-gray-500">
+						Orders from customers will appear here
+					</p>
+				</div>
+			) : (
+				<div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+					<div className="overflow-x-auto">
+						<table className="min-w-full divide-y divide-gray-200">{/*... rest of table */}
 						<thead className="bg-gray-50">
 							<tr>
 								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -191,6 +209,7 @@ export default function AdminOrdersPage() {
 					</table>
 				</div>
 			</div>
+			)}
 		</div>
 	);
 }

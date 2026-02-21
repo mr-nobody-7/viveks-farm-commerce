@@ -48,8 +48,19 @@ export default function ProductDetail({ params }: ProductDetailProps) {
 
 	if (isLoading) {
 		return (
-			<div className="container py-20 text-center">
-				<p className="text-muted-foreground">Loading...</p>
+			<div className="container py-8">
+				<div className="grid md:grid-cols-2 gap-8 animate-pulse">
+					{/* Image skeleton */}
+					<div className="aspect-square bg-gray-200 rounded-lg" />
+					{/* Content skeleton */}
+					<div className="space-y-4">
+						<div className="h-8 bg-gray-200 rounded w-3/4" />
+						<div className="h-6 bg-gray-200 rounded w-1/4" />
+						<div className="h-4 bg-gray-200 rounded w-full" />
+						<div className="h-4 bg-gray-200 rounded w-5/6" />
+						<div className="h-12 bg-gray-200 rounded w-full mt-6" />
+					</div>
+				</div>
 			</div>
 		);
 	}

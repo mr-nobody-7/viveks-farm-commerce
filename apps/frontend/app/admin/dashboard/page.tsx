@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { MetricCardSkeleton } from "@/components/Skeletons";
 
 interface DashboardMetrics {
 	totalOrders: number;
@@ -44,8 +45,13 @@ export default function AdminDashboardPage() {
 
 	if (loading) {
 		return (
-			<div className="flex items-center justify-center min-h-[400px]">
-				<p className="text-gray-500">Loading dashboard...</p>
+			<div className="space-y-6">
+				<div className="h-10 bg-gray-200 rounded w-48 animate-pulse" />
+				<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+					<MetricCardSkeleton />
+					<MetricCardSkeleton />
+					<MetricCardSkeleton />
+				</div>
 			</div>
 		);
 	}
