@@ -36,9 +36,9 @@ export const LoginModal = ({ open, onOpenChange }: LoginModalProps) => {
 		try {
 			const response = await api.requestOTP(mobile);
 			setStep("otp");
-			// In development, show OTP in console
-			if (response.otp) {
-				console.log("🔐 OTP:", response.otp);
+			// In development, show OTP (remove in production)
+			if (process.env.NODE_ENV === "development" && response.otp) {
+				// OTP will be visible in backend logs
 			}
 		} catch (err) {
 			setError("Failed to send OTP. Please try again.");

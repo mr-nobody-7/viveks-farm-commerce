@@ -1,6 +1,7 @@
 "use client";
 import { useState, useMemo } from "react";
 import { ProductCard } from "@/components/ProductCard";
+import { ProductCardSkeleton } from "@/components/Skeletons";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import {
@@ -13,6 +14,7 @@ import {
 import Link from "next/link";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { ShoppingBag } from "lucide-react";
 
 type SortOption = "default" | "price-asc" | "price-desc";
 
@@ -41,8 +43,31 @@ const Shop = () => {
 
 	if (productsLoading || categoriesLoading) {
 		return (
-			<div className="container py-20 text-center">
-				<p className="text-muted-foreground">Loading...</p>
+			<div className="container py-8">
+				<div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
+					<Link href="/" className="hover:text-primary">
+						Home
+					</Link>
+					<span>/</span>
+					<span className="text-foreground">Shop</span>
+				</div>
+				<div className="flex flex-col md:flex-row gap-8">
+					<aside className="w-full md:w-56 shrink-0">
+						<div className="h-8 bg-gray-200 rounded w-3/4 mb-3 animate-pulse" />
+						<div className="space-y-2">
+							{[1, 2, 3].map((i) => (
+								<div key={i} className="h-10 bg-gray-200 rounded animate-pulse" />
+							))}
+						</div>
+					</aside>
+					<div className="flex-1">
+						<div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4">
+							{[1, 2, 3, 4, 5, 6, 7, 8].map((i) => (
+								<ProductCardSkeleton key={i} />
+							))}
+						</div>
+					</div>
+				</div>
 			</div>
 		);
 	}
@@ -106,15 +131,19 @@ const Shop = () => {
 						))}
 					</div>
 				) : (
-            <div className="text-center py-20">
-              <p className="text-muted-foreground">
-                No products found in this category.
-              </p>
-              <Button variant="outline" className="mt-4" asChild>
-                <Link href="/shop">Browse all products</Link>
-              </Button>
-            </div>
-          )}
+					<div className="text-center py-20 space-y-4">
+						<ShoppingBag className="h-16 w-16 mx-auto text-muted-foreground" />
+						<div>
+							<h3 className="text-xl font-semibold mb-2">No products found</h3>
+							<p className="text-muted-foreground">
+								Try browsing other categories or check back later.
+							</p>
+						</div>
+						<Button asChild>
+							<Link href="/">Go Home</Link>
+						</Button>
+					</div>
+				)}
         </div>
       </div>
     </div>
