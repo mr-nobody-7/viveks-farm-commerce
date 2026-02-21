@@ -123,6 +123,46 @@ router.delete("/admin/products/:id", requireAdmin, async (req, res) => {
 	res.json({ message: "Product disabled" });
 });
 
+// Order Management
+router.get("/admin/orders", requireAdmin, async (_req, res) => {
+	const orders = await Order.find()
+		.populate("user", "mobile name")
+		.sort({ createdAt: -1 })
+		.lean();
+
+	res.json(orders);
+});
+
+router.get("/admin/orders/:id", requireAdmin, async (req, res) => {
+	const order = await Order.findById(req.params.id)
+		.populate("user", "mobile name")
+		.lean();
+
+	if (!order) {
+		return res.status(404).json({ message: "Order not found" });
+	}
+
+	res.json(order);
+});
+
+router.patch("/admin/orders/:id/status", requireAdmin, async (req, res) => {
+	const { status } = req.body;
+
+	const allowedStatuses = ["PLACED", "PACKED", "SHIPPED", "DELIVERED"];
+
+	if (!allowedStatuses.includes(status)) {
+		return res.status(400).json({ message: "Invalid status" });
+	}
+
+	const order = await Order.findByIdAndUpdate(
+		req.params.id,
+		{ status },
+		{ new: true },
+	);
+
+	res.json(order);
+});
+
 // Image Upload
 router.post(
 	"/admin/upload",
