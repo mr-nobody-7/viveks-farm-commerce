@@ -8,7 +8,7 @@ import { Separator } from "@/components/ui/separator";
 import { ShoppingCart, ArrowLeft } from "lucide-react";
 import type { ProductVariant } from "@/lib/api";
 import { ProductCard } from "@/components/ProductCard";
-	import { useCartStore } from "@/lib/stores/cart-store";
+import { useCartStore } from "@/lib/stores/cart-store";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
