@@ -45,7 +45,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 						{variant.label}
 					</Badge>
 				</div>
-				<CardContent className="p-4 space-y-2">
+				<CardContent className="p-4 space-y-3">
 					<h3 className="font-semibold text-foreground line-clamp-1">
 						{product.name}
 					</h3>
@@ -62,17 +62,21 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 							</span>
 						)}
 					</div>
-          <div className="flex gap-2">
-            <Button size="sm" className="flex-1" onClick={handleAddToCart}>
-              <ShoppingCart className="h-4 w-4 mr-1" />
-              Add
-            </Button>
-            <Button size="sm" variant="outline" className="flex-1" asChild>
-              <span>View</span>
-            </Button>
-          </div>
-        </CardContent>
-      </Card>
-    </Link>
-  );
+					<div className="grid grid-cols-2 gap-2 pt-1">
+						<Button
+							size="sm"
+							className="h-10 w-full"
+							onClick={handleAddToCart}
+						>
+							<ShoppingCart className="h-4 w-4 mr-1" />
+							Add
+						</Button>
+						<Button size="sm" variant="outline" className="h-10 w-full" asChild>
+							<span>View</span>
+						</Button>
+					</div>
+				</CardContent>
+			</Card>
+		</Link>
+	);
 };
