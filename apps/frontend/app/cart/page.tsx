@@ -39,14 +39,14 @@ const Cart = () => {
 
 	return (
 		<div className="container py-8">
-			<h1 className="text-3xl font-bold mb-8">Shopping Cart</h1>
+			<h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Shopping Cart</h1>
 
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 				{/* Cart items */}
 				<div className="lg:col-span-2 space-y-4">
 					{items.map((item) => (
 						<Card key={`${item.productId}-${item.variantLabel}`}>
-							<CardContent className="p-4 flex gap-4">
+							<CardContent className="p-4 flex flex-col sm:flex-row gap-4">
 								<div className="h-20 w-20 rounded-md bg-muted overflow-hidden shrink-0">
 									<img
 										src={item.image}
@@ -61,7 +61,7 @@ const Cart = () => {
 										₹{item.price}
 									</p>
 								</div>
-								<div className="flex flex-col items-end gap-2">
+								<div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2">
 									<Button
 										variant="ghost"
 										size="icon"
@@ -110,7 +110,7 @@ const Cart = () => {
 				</div>
 
 				{/* Price Summary */}
-				<Card className="h-fit">
+				<Card className="h-fit lg:sticky lg:top-24">
 					<CardContent className="p-6 space-y-4">
 						<h3 className="font-semibold text-lg">Order Summary</h3>
 						<div className="space-y-2 text-sm">

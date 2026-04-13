@@ -147,8 +147,8 @@ const Checkout = () => {
   };
 
   return (
-    <div className="container py-8">
-      <h1 className="text-3xl font-bold mb-8">Checkout</h1>
+    <div className="container py-6 sm:py-8">
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Checkout</h1>
 
       <form onSubmit={handlePlaceOrder}>
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -228,7 +228,7 @@ const Checkout = () => {
           </div>
 
           {/* Order Summary */}
-          <Card className="h-fit">
+          <Card className="h-fit lg:sticky lg:top-24">
             <CardContent className="p-6 space-y-4">
               <h3 className="font-semibold text-lg">Order Summary</h3>
               <div className="space-y-2 text-sm">
@@ -237,7 +237,7 @@ const Checkout = () => {
                     key={`${item.productId}-${item.variantLabel}`}
                     className="flex justify-between"
                   >
-                    <span className="text-muted-foreground">
+                    <span className="text-muted-foreground truncate max-w-[70%]">
                       {item.name} ({item.variantLabel}) × {item.quantity}
                     </span>
                     <span>₹{item.price * item.quantity}</span>
