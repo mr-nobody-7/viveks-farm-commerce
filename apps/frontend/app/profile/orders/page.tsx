@@ -88,9 +88,9 @@ const Orders = () => {
 
 	return (
 		<div className="container py-8 max-w-4xl">
-			<div className="flex items-center justify-between mb-8">
+			<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-8">
 				<h1 className="text-3xl font-bold">My Orders</h1>
-				<Button variant="outline" asChild>
+				<Button variant="outline" className="w-full sm:w-auto" asChild>
 					<Link href="/profile">Back to Profile</Link>
 				</Button>
 			</div>
@@ -151,7 +151,7 @@ const Orders = () => {
 											<Badge variant="outline">{order.paymentMethod}</Badge>
 										</div>
 									</div>
-									<Button asChild>
+									<Button className="w-full sm:w-auto" asChild>
 										<Link href={`/profile/orders/${order._id}`}>
 											View Details
 										</Link>
