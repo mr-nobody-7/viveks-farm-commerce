@@ -121,14 +121,15 @@ export default function AdminCategoriesPage() {
 
 	return (
 		<div className="space-y-6">
-			<div className="flex justify-between items-center">
+			<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
 				<h1 className="text-3xl font-bold">Categories</h1>
 				<Button onClick={() => handleOpenModal()}>Add Category</Button>
 			</div>
 
 			{/* Categories Table */}
 			<div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-				<table className="min-w-full divide-y divide-gray-200">
+				<div className="overflow-x-auto">
+					<table className="min-w-[900px] divide-y divide-gray-200">
 					<thead className="bg-gray-50">
 						<tr>
 							<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -190,7 +191,8 @@ export default function AdminCategoriesPage() {
 							</tr>
 						))}
 					</tbody>
-				</table>
+					</table>
+				</div>
 			</div>
 
 			{/* Modal */}

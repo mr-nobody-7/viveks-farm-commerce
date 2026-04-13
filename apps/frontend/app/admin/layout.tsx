@@ -107,9 +107,42 @@ export default function AdminLayout({
 	];
 
 	return (
-		<div className="min-h-screen flex bg-gray-50">
-			{/* Sidebar */}
-			<aside className="w-64 bg-white border-r border-gray-200">
+		<div className="min-h-screen bg-gray-50">
+			<div className="lg:hidden bg-white border-b px-4 py-3 flex items-center justify-between">
+				<div>
+					<h2 className="text-lg font-bold text-green-600">Vivek's Farm</h2>
+					<p className="text-xs text-gray-600">Admin Panel</p>
+				</div>
+				<button
+					type="button"
+					onClick={handleLogout}
+					className="text-sm font-medium text-red-600"
+				>
+					Logout
+				</button>
+			</div>
+
+			<div className="lg:hidden bg-white border-b px-4 py-2">
+				<div className="flex gap-2 overflow-x-auto">
+					{navItems.map((item) => (
+						<Link
+							key={item.path}
+							href={item.path}
+							className={cn(
+								"px-3 py-1.5 rounded-md text-sm font-medium whitespace-nowrap",
+								pathname === item.path
+									? "bg-green-100 text-green-700"
+									: "text-gray-700 bg-gray-100",
+							)}
+						>
+							{item.name}
+						</Link>
+					))}
+				</div>
+			</div>
+
+			<div className="lg:flex min-h-[calc(100vh-109px)] lg:min-h-screen">
+				<aside className="hidden lg:block w-64 bg-white border-r border-gray-200">
 				<div className="p-6">
 					<h2 className="text-2xl font-bold text-green-600">
 						Vivek's Farm
@@ -155,10 +188,10 @@ export default function AdminLayout({
 						Logout
 					</button>
 				</nav>
-			</aside>
+				</aside>
 
-			{/* Main Content */}
-			<main className="flex-1 p-8">{children}</main>
+				<main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+			</div>
 		</div>
 	);
 }
