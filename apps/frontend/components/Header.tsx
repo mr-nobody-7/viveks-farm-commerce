@@ -2,7 +2,6 @@
 
 import Link from "next/link";
 import { HeaderNavigationMenu } from "./HeaderNavigationMenu";
-import Image from "next/image";
 import { Leaf, ShoppingCart, User, LogOut, Package, UserCircle } from "lucide-react";
 import { ICON_SIZE } from "@/lib/constants";
 import { Button } from "./ui/button";
@@ -34,19 +33,23 @@ export const Header = () => {
 
 	return (
 		<>
-			<div className="w-full border-b flex items-center justify-between px-10 py-2 sticky top-0 bg-white opacity-90 z-10">
-				<Link href="/">
-					<div className="flex items-center gap-2">
-						<Leaf className="h-6 w-6 text-primary" size={ICON_SIZE.HEADER} />
-						<span className="text-xl font-bold">Vivek's Farm</span>
-					</div>
-				</Link>
-				<HeaderNavigationMenu />
-				<div className="flex items-center justify-between gap-2">
+			<div className="w-full border-b sticky top-0 bg-white/95 backdrop-blur z-30">
+				<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-2">
+					<div className="flex items-center justify-between gap-3">
+						<Link href="/" className="shrink-0">
+							<div className="flex items-center gap-2">
+								<Leaf className="h-6 w-6 text-primary" size={ICON_SIZE.HEADER} />
+								<span className="text-base sm:text-lg font-bold">Vivek's Farm</span>
+							</div>
+						</Link>
+						<div className="hidden lg:block">
+							<HeaderNavigationMenu />
+						</div>
+						<div className="flex items-center gap-1 sm:gap-2 shrink-0">
 					{user ? (
 						<DropdownMenu>
 							<DropdownMenuTrigger asChild>
-								<Button variant="ghost" size="icon">
+								<Button variant="ghost" size="icon" className="h-10 w-10">
 									<User size={ICON_SIZE.HEADER} />
 								</Button>
 							</DropdownMenuTrigger>
@@ -73,12 +76,26 @@ export const Header = () => {
 							</DropdownMenuContent>
 						</DropdownMenu>
 					) : (
-						<Button variant="ghost" onClick={() => setShowLogin(true)}>
-							<User size={ICON_SIZE.HEADER} className="mr-2" />
-							Login
-						</Button>
+						<>
+							<Button
+								variant="ghost"
+								onClick={() => setShowLogin(true)}
+								className="hidden sm:inline-flex"
+							>
+								<User size={ICON_SIZE.HEADER} className="mr-2" />
+								Login
+							</Button>
+							<Button
+								variant="ghost"
+								size="icon"
+								onClick={() => setShowLogin(true)}
+								className="h-10 w-10 sm:hidden"
+							>
+								<User size={ICON_SIZE.HEADER} />
+							</Button>
+						</>
 					)}
-					<Button variant="ghost" className="relative" asChild>
+					<Button variant="ghost" className="relative h-10 w-10" size="icon" asChild>
 						<Link href="/cart">
 							<ShoppingCart size={ICON_SIZE.HEADER} />
 							{totalItems > 0 && (
@@ -88,6 +105,17 @@ export const Header = () => {
 							)}
 						</Link>
 					</Button>
+						</div>
+					</div>
+
+					<div className="lg:hidden border-t mt-2 pt-2">
+						<div className="flex gap-4 overflow-x-auto text-sm whitespace-nowrap text-muted-foreground">
+							<Link href="/" className="hover:text-primary">Home</Link>
+							<Link href="/shop" className="hover:text-primary">Shop</Link>
+							<Link href="/about-us" className="hover:text-primary">About</Link>
+							<Link href="/contact-us" className="hover:text-primary">Contact</Link>
+						</div>
+					</div>
 				</div>
 			</div>
 			<LoginModal open={showLogin} onOpenChange={setShowLogin} />
