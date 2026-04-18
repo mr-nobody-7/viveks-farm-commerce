@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { AuthHydrator } from "@/components/AuthHydrator";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import Layout from "@/components/Layout";
@@ -56,6 +57,7 @@ export default function RootLayout({
       >
         <ReactQueryProvider>
           <CartStoreProvider>
+						<AuthHydrator />
             <Layout>{children}</Layout>
           </CartStoreProvider>
         </ReactQueryProvider>

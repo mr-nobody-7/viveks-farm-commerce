@@ -1,9 +1,22 @@
 import { Router } from "express";
+import { type AuthRequest, requireAuth } from "../middleware/auth.middleware";
 import { OTP } from "../models/otp.model";
 import { User } from "../models/user.model";
 import { generateToken } from "../utils/jwt";
 
 const router = Router();
+
+router.get("/users/me", requireAuth, async (req: AuthRequest, res) => {
+	const user = await User.findById(req.userId)
+		.select("_id mobile name role")
+		.lean();
+
+	if (!user) {
+		return res.status(401).json({ message: "Unauthorized" });
+	}
+
+	res.json(user);
+});
 
 router.post("/auth/request-otp", async (req, res) => {
 	const { mobile } = req.body;
