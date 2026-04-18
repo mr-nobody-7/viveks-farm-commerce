@@ -4,9 +4,6 @@ declare module "next" {
 	}
 
 	export type NextConfig = Record<string, unknown>;
-
-	const nextDefault: unknown;
-	export default nextDefault;
 }
 
 declare module "next/navigation" {
@@ -56,6 +53,11 @@ declare module "next/font/google" {
 
 	export function Geist(options?: FontOptions): FontResult;
 	export function Geist_Mono(options?: FontOptions): FontResult;
+}
+
+declare module "next/types.js" {
+	export type ResolvingMetadata = unknown;
+	export type ResolvingViewport = unknown;
 }
 
 declare module "*.css";

@@ -49,7 +49,7 @@ export default function Home() {
 
 	if (productsLoading || categoriesLoading) {
 		return (
-			<div className="container py-20 text-center">
+			<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
 				<p className="text-muted-foreground">Loading...</p>
 			</div>
 		);
@@ -59,7 +59,7 @@ export default function Home() {
 		<>
 			{/* Hero */}
 			<section className="relative bg-linear-to-br from-primary/10 via-accent to-secondary/30">
-				<div className="container py-20 md:py-32">
+				<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
 					<div className="max-w-2xl space-y-6">
 						<Badge variant="secondary" className="text-sm px-3 py-1">
 							🌿 100% Natural & Farm Fresh
@@ -85,7 +85,7 @@ export default function Home() {
 			</section>
 
 			{/* Categories */}
-			<section className="container py-16">
+			<section className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
 				<div className="text-center mb-10">
 					<h2 className="text-3xl font-bold">Shop by Category</h2>
 					<p className="text-muted-foreground mt-2">
@@ -110,7 +110,7 @@ export default function Home() {
 
 			{/* Featured Products */}
 			<section className="bg-secondary/30 py-16">
-				<div className="container">
+				<div className="container mx-auto px-4 sm:px-6 lg:px-8">
 					<div className="flex items-center justify-between mb-8">
 						<div>
 							<h2 className="text-3xl font-bold">Bestsellers</h2>
@@ -129,7 +129,7 @@ export default function Home() {
 			</section>
 
 			{/* Trust Section */}
-			<section className="container py-16">
+			<section className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
 				<div className="text-center mb-10">
 					<h2 className="text-3xl font-bold">Why Vivek's Farm?</h2>
 					<p className="text-muted-foreground mt-2">

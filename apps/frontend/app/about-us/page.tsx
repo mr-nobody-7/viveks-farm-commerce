@@ -29,7 +29,7 @@ const About = () => {
     <>
       {/* Hero */}
       <section className="bg-linear-to-br from-primary/10 via-accent to-secondary/30 py-20">
-        <div className="container max-w-3xl text-center space-y-4">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8 max-w-3xl text-center space-y-4">
           <h1 className="text-4xl md:text-5xl font-bold">Our Story</h1>
           <p className="text-lg text-muted-foreground">
             From a small family farm in rural India to your dining table —
@@ -39,7 +39,7 @@ const About = () => {
       </section>
 
       {/* Story */}
-      <section className="container py-16 max-w-3xl space-y-6">
+      <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-16 max-w-3xl space-y-6">
         <p className="text-muted-foreground leading-relaxed">
           Vivek's Farm started as a dream to bring the pure, unadulterated
           flavors of traditional Indian food to homes across the country.
@@ -62,7 +62,7 @@ const About = () => {
 
       {/* Values */}
       <section className="bg-secondary/30 py-16">
-        <div className="container">
+        <div className="container mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-3xl font-bold text-center mb-10">
             What We Stand For
           </h2>
