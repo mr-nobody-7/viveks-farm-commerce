@@ -2,6 +2,7 @@ import { v2 as cloudinary } from "cloudinary";
 import { Router } from "express";
 import jwt from "jsonwebtoken";
 import multer from "multer";
+import { sendEmail } from "../lib/mailer";
 import { requireAdmin } from "../middleware/admin.middleware";
 import { Admin } from "../models/admin.model";
 import { Category } from "../models/category.model";
@@ -46,6 +47,22 @@ router.post("/admin/login", async (req, res) => {
 		httpOnly: true,
 		sameSite: "lax",
 	});
+
+	const loginTime = new Date().toLocaleString("en-IN", {
+		dateStyle: "medium",
+		timeStyle: "short",
+	});
+
+	void sendEmail(
+		admin.email,
+		"New login to Vivek's Farm Admin",
+		`<div style="font-family:Arial,sans-serif;line-height:1.6;color:#111;">
+			<h2 style="margin:0 0 12px;">New Admin Login Detected</h2>
+			<p style="margin:0 0 8px;">A new login to your Vivek's Farm Admin account was detected.</p>
+			<p style="margin:0 0 8px;"><strong>Login time:</strong> ${loginTime}</p>
+			<p style="margin:0;">If this wasn't you, please contact support immediately and reset your password.</p>
+		</div>`,
+	);
 
 	res.json({ message: "Admin login successful" });
 });
