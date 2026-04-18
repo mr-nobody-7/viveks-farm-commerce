@@ -4,6 +4,8 @@ import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { cn } from "@/lib/utils";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function AdminLayout({
 	children,
 }: { children: React.ReactNode }) {
@@ -17,7 +19,7 @@ export default function AdminLayout({
 
 	const handleLogout = async () => {
 		try {
-			await fetch("http://localhost:4000/api/admin/logout", {
+			await fetch(`${API_URL}/api/admin/logout`, {
 				method: "POST",
 				credentials: "include",
 			});

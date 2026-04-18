@@ -5,6 +5,8 @@ import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 interface User {
 	_id: string;
 	mobile: string;
@@ -71,7 +73,7 @@ export default function AdminOrderDetailPage({ params }: OrderDetailProps) {
 
 	const fetchOrder = async () => {
 		try {
-			const res = await fetch(`http://localhost:4000/api/admin/orders/${id}`, {
+			const res = await fetch(`${API_URL}/api/admin/orders/${id}`, {
 				credentials: "include",
 			});
 
@@ -115,7 +117,7 @@ export default function AdminOrderDetailPage({ params }: OrderDetailProps) {
 		setUpdating(true);
 		try {
 			const res = await fetch(
-				`http://localhost:4000/api/admin/orders/${id}/status`,
+				`${API_URL}/api/admin/orders/${id}/status`,
 				{
 					method: "PATCH",
 					headers: { "Content-Type": "application/json" },

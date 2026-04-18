@@ -6,6 +6,8 @@ import Link from "next/link";
 import { Package } from "lucide-react";
 import { OrderCardSkeleton } from "@/components/Skeletons";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 interface User {
 	_id: string;
 	mobile: string;
@@ -42,7 +44,7 @@ export default function AdminOrdersPage() {
 
 	const fetchOrders = async () => {
 		try {
-			const res = await fetch("http://localhost:4000/api/admin/orders", {
+			const res = await fetch(`${API_URL}/api/admin/orders`, {
 				credentials: "include",
 			});
 

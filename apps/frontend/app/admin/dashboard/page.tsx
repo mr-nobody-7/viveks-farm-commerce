@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { MetricCardSkeleton } from "@/components/Skeletons";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 interface DashboardMetrics {
 	totalOrders: number;
 	totalRevenue: number;
@@ -19,7 +21,7 @@ export default function AdminDashboardPage() {
 	useEffect(() => {
 		const fetchMetrics = async () => {
 			try {
-				const res = await fetch("http://localhost:4000/api/admin/dashboard", {
+				const res = await fetch(`${API_URL}/api/admin/dashboard`, {
 					credentials: "include",
 				});
 

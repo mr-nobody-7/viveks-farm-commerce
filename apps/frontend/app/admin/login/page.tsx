@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 export default function AdminLoginPage() {
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
@@ -17,7 +19,7 @@ export default function AdminLoginPage() {
 		setLoading(true);
 
 		try {
-			const res = await fetch("http://localhost:4000/api/admin/login", {
+			const res = await fetch(`${API_URL}/api/admin/login`, {
 				method: "POST",
 				headers: { "Content-Type": "application/json" },
 				credentials: "include", // Important for cookies

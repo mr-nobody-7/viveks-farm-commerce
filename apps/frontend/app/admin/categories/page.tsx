@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 interface Category {
 	_id: string;
 	name: string;
@@ -23,7 +25,7 @@ export default function AdminCategoriesPage() {
 
 	const fetchCategories = async () => {
 		try {
-			const res = await fetch("http://localhost:4000/api/admin/categories", {
+			const res = await fetch(`${API_URL}/api/admin/categories`, {
 				credentials: "include",
 			});
 
@@ -70,8 +72,8 @@ export default function AdminCategoriesPage() {
 
 		try {
 			const url = editingCategory
-				? `http://localhost:4000/api/admin/categories/${editingCategory._id}`
-				: "http://localhost:4000/api/admin/categories";
+				? `${API_URL}/api/admin/categories/${editingCategory._id}`
+				: `${API_URL}/api/admin/categories`;
 
 			const res = await fetch(url, {
 				method: editingCategory ? "PATCH" : "POST",
@@ -93,7 +95,7 @@ export default function AdminCategoriesPage() {
 	const handleToggleActive = async (categoryId: string, isActive: boolean) => {
 		try {
 			const res = await fetch(
-				`http://localhost:4000/api/admin/categories/${categoryId}`,
+				`${API_URL}/api/admin/categories/${categoryId}`,
 				{
 					method: "PATCH",
 					headers: { "Content-Type": "application/json" },

@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
 interface Category {
 	_id: string;
 	name: string;
@@ -46,7 +48,7 @@ export default function AdminProductsPage() {
 
 	const fetchProducts = async () => {
 		try {
-			const res = await fetch("http://localhost:4000/api/admin/products", {
+			const res = await fetch(`${API_URL}/api/admin/products`, {
 				credentials: "include",
 			});
 
@@ -69,7 +71,7 @@ export default function AdminProductsPage() {
 
 	const fetchCategories = async () => {
 		try {
-			const res = await fetch("http://localhost:4000/api/admin/categories", {
+			const res = await fetch(`${API_URL}/api/admin/categories`, {
 				credentials: "include",
 			});
 
@@ -124,7 +126,7 @@ export default function AdminProductsPage() {
 			const formDataUpload = new FormData();
 			formDataUpload.append("image", file);
 
-			const res = await fetch("http://localhost:4000/api/admin/upload", {
+			const res = await fetch(`${API_URL}/api/admin/upload`, {
 				method: "POST",
 				credentials: "include",
 				body: formDataUpload,
@@ -176,8 +178,8 @@ export default function AdminProductsPage() {
 
 		try {
 			const url = editingProduct
-				? `http://localhost:4000/api/admin/products/${editingProduct._id}`
-				: "http://localhost:4000/api/admin/products";
+				? `${API_URL}/api/admin/products/${editingProduct._id}`
+				: `${API_URL}/api/admin/products`;
 
 			const res = await fetch(url, {
 				method: editingProduct ? "PATCH" : "POST",
@@ -199,7 +201,7 @@ export default function AdminProductsPage() {
 	const handleToggleActive = async (productId: string, isActive: boolean) => {
 		try {
 			const res = await fetch(
-				`http://localhost:4000/api/admin/products/${productId}`,
+				`${API_URL}/api/admin/products/${productId}`,
 				{
 					method: "PATCH",
 					headers: { "Content-Type": "application/json" },
