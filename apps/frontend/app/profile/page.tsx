@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { Package, Loader2 } from "lucide-react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const Profile = () => {
 	const user = useAuthStore((state) => state.user);
@@ -34,7 +34,7 @@ const Profile = () => {
 		setMessage("");
 
 		try {
-			const response = await fetch(`${API_URL}/users/profile`, {
+			const response = await fetch(`${API_URL}/api/users/profile`, {
 				method: "PATCH",
 				credentials: "include",
 				headers: { "Content-Type": "application/json" },

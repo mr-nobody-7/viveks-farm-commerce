@@ -10,7 +10,7 @@ import { Separator } from "@/components/ui/separator";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { ArrowLeft } from "lucide-react";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 interface OrderItem {
 	productId: string;
@@ -74,7 +74,7 @@ export default function OrderDetail({ params }: OrderDetailProps) {
 
 		const fetchOrder = async () => {
 			try {
-				const response = await fetch(`${API_URL}/orders/${id}`, {
+				const response = await fetch(`${API_URL}/api/orders/${id}`, {
 					credentials: "include",
 					cache: "no-store",
 				});

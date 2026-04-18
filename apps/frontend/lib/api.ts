@@ -1,4 +1,4 @@
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export interface Category {
 	_id: string;
@@ -31,35 +31,35 @@ export interface Product {
 export const api = {
 	// Get all products
 	async getProducts(): Promise<Product[]> {
-		const res = await fetch(`${API_URL}/products`);
+		const res = await fetch(`${API_URL}/api/products`);
 		if (!res.ok) throw new Error("Failed to fetch products");
 		return res.json();
 	},
 
 	// Get single product by slug
 	async getProductBySlug(slug: string): Promise<Product> {
-		const res = await fetch(`${API_URL}/products/${slug}`);
+		const res = await fetch(`${API_URL}/api/products/${slug}`);
 		if (!res.ok) throw new Error("Product not found");
 		return res.json();
 	},
 
 	// Get all categories
 	async getCategories(): Promise<Category[]> {
-		const res = await fetch(`${API_URL}/categories`);
+		const res = await fetch(`${API_URL}/api/categories`);
 		if (!res.ok) throw new Error("Failed to fetch categories");
 		return res.json();
 	},
 
 	// Get products by category slug
 	async getProductsByCategory(categorySlug: string): Promise<Product[]> {
-		const res = await fetch(`${API_URL}/categories/${categorySlug}/products`);
+		const res = await fetch(`${API_URL}/api/categories/${categorySlug}/products`);
 		if (!res.ok) throw new Error("Failed to fetch products");
 		return res.json();
 	},
 
 	// Auth endpoints
 	async requestOTP(mobile: string): Promise<{ message: string; otp?: string }> {
-		const res = await fetch(`${API_URL}/auth/request-otp`, {
+		const res = await fetch(`${API_URL}/api/auth/request-otp`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ mobile }),
@@ -72,7 +72,7 @@ export const api = {
 		mobile: string,
 		otp: string,
 	): Promise<{ message: string; user: any }> {
-		const res = await fetch(`${API_URL}/auth/verify-otp`, {
+		const res = await fetch(`${API_URL}/api/auth/verify-otp`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			credentials: "include",

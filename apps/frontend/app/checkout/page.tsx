@@ -14,7 +14,7 @@ import { useAuthStore } from "@/lib/stores/auth-store";
 import { Loader2 } from "lucide-react";
 
 const DELIVERY_CHARGE = 49;
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const ENABLE_COD = process.env.NEXT_PUBLIC_ENABLE_COD === "true";
 
 const Checkout = () => {
@@ -69,7 +69,7 @@ const Checkout = () => {
 
     try {
       // Create order with payment method
-      const response = await fetch(`${API_URL}/orders`, {
+      const response = await fetch(`${API_URL}/api/orders`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -95,7 +95,7 @@ const Checkout = () => {
       }
 
       // If ONLINE, initiate Razorpay payment
-      const paymentResponse = await fetch(`${API_URL}/payments/create-order`, {
+      const paymentResponse = await fetch(`${API_URL}/api/payments/create-order`, {
         method: "POST",
         credentials: "include",
         headers: { "Content-Type": "application/json" },
@@ -117,7 +117,7 @@ const Checkout = () => {
         description: "Farm Fresh Products",
         handler: async function (response: any) {
           try {
-            await fetch(`${API_URL}/payments/verify`, {
+            await fetch(`${API_URL}/api/payments/verify`, {
               method: "POST",
               credentials: "include",
               headers: { "Content-Type": "application/json" },

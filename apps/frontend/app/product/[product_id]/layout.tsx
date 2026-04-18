@@ -9,7 +9,7 @@ export async function generateMetadata({
 
 	try {
 		const response = await fetch(
-			`${process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api"}/products/slug/${product_id}`,
+			`${process.env.NEXT_PUBLIC_API_URL}/api/products/slug/${product_id}`,
 			{ cache: "no-store" },
 		);
 

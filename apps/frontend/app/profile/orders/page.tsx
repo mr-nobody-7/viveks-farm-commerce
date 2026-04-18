@@ -10,7 +10,7 @@ import { useAuthStore } from "@/lib/stores/auth-store";
 import { Package } from "lucide-react";
 import { OrderCardSkeleton } from "@/components/Skeletons";
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:4000/api";
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 interface Order {
 	_id: string;
@@ -49,7 +49,7 @@ const Orders = () => {
 
 		const fetchOrders = async () => {
 			try {
-				const response = await fetch(`${API_URL}/orders/user`, {
+				const response = await fetch(`${API_URL}/api/orders/user`, {
 					credentials: "include",
 					cache: "no-store",
 				});
