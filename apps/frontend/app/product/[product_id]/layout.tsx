@@ -6,17 +6,19 @@ export async function generateMetadata({
 	params: Promise<{ product_id: string }>;
 }): Promise<Metadata> {
 	const { product_id } = await params;
+	const fallbackMetadata: Metadata = {
+		title: "Product Not Found",
+		description: "The requested product is unavailable at the moment.",
+	};
 
 	try {
 		const response = await fetch(
-			`${process.env.NEXT_PUBLIC_API_URL}/api/products/slug/${product_id}`,
+			`${process.env.NEXT_PUBLIC_API_URL}/products/${product_id}`,
 			{ cache: "no-store" },
 		);
 
 		if (!response.ok) {
-			return {
-				title: "Product Not Found",
-			};
+			return fallbackMetadata;
 		}
 
 		const product = await response.json();
@@ -33,10 +35,8 @@ export async function generateMetadata({
 					: undefined,
 			},
 		};
-	} catch (error) {
-		return {
-			title: "Product",
-		};
+	} catch {
+		return fallbackMetadata;
 	}
 }
 
