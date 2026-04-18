@@ -37,7 +37,11 @@ router.post("/auth/request-otp", async (req, res) => {
 
 	console.log(`OTP for ${mobile}: ${otp}`); // Replace with SMS later
 
-	res.json({ message: "OTP sent", otp }); // Remove otp from response in production
+	if (process.env.NODE_ENV !== "production") {
+		return res.json({ message: "OTP sent", devOtp: otp });
+	}
+
+	res.json({ message: "OTP sent" });
 });
 
 router.post("/auth/verify-otp", async (req, res) => {

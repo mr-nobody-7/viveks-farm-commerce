@@ -23,6 +23,7 @@ interface LoginModalProps {
 export const LoginModal = ({ open, onOpenChange }: LoginModalProps) => {
 	const [mobile, setMobile] = useState("");
 	const [otp, setOtp] = useState("");
+	const [devOtp, setDevOtp] = useState<string | null>(null);
 	const [step, setStep] = useState<"mobile" | "otp">("mobile");
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState("");
@@ -35,11 +36,8 @@ export const LoginModal = ({ open, onOpenChange }: LoginModalProps) => {
 
 		try {
 			const response = await api.requestOTP(mobile);
+			setDevOtp(response.devOtp ?? null);
 			setStep("otp");
-			// In development, show OTP (remove in production)
-			if (process.env.NODE_ENV === "development" && response.otp) {
-				// OTP will be visible in backend logs
-			}
 		} catch (err) {
 			setError("Failed to send OTP. Please try again.");
 		} finally {
@@ -59,6 +57,7 @@ export const LoginModal = ({ open, onOpenChange }: LoginModalProps) => {
 			// Reset form
 			setMobile("");
 			setOtp("");
+			setDevOtp(null);
 			setStep("mobile");
 		} catch (err) {
 			setError("Invalid OTP. Please try again.");
@@ -70,6 +69,7 @@ export const LoginModal = ({ open, onOpenChange }: LoginModalProps) => {
 	const handleBack = () => {
 		setStep("mobile");
 		setOtp("");
+		setDevOtp(null);
 		setError("");
 	};
 
@@ -117,6 +117,11 @@ export const LoginModal = ({ open, onOpenChange }: LoginModalProps) => {
 					</form>
 				) : (
 					<form onSubmit={handleVerifyOTP} className="space-y-4">
+						{devOtp && (
+							<div className="rounded-md border border-amber-300 bg-amber-100 px-3 py-2 text-sm text-amber-900">
+								Demo OTP: {devOtp}
+							</div>
+						)}
 						<div className="space-y-2">
 							<Label htmlFor="otp">OTP</Label>
 							<Input

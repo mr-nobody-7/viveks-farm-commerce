@@ -58,7 +58,7 @@ export const api = {
 	},
 
 	// Auth endpoints
-	async requestOTP(mobile: string): Promise<{ message: string; otp?: string }> {
+	async requestOTP(mobile: string): Promise<{ message: string; devOtp?: string }> {
 		const res = await fetch(`${API_URL}/api/auth/request-otp`, {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
