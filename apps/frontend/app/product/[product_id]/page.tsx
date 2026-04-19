@@ -48,7 +48,7 @@ export default function ProductDetail({ params }: ProductDetailProps) {
 
 	if (isLoading) {
 		return (
-			<div className="container py-8">
+			<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
 				<div className="grid md:grid-cols-2 gap-8 animate-pulse">
 					{/* Image skeleton */}
 					<div className="aspect-square bg-gray-200 rounded-lg" />
@@ -67,7 +67,7 @@ export default function ProductDetail({ params }: ProductDetailProps) {
 
 	if (!product || !selectedVariant) {
 		return (
-			<div className="container py-20 text-center">
+			<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
 				<p className="text-muted-foreground">Product not found.</p>
 				<Button variant="outline" className="mt-4" asChild>
 					<Link href="/shop">Back to Shop</Link>
@@ -102,7 +102,7 @@ export default function ProductDetail({ params }: ProductDetailProps) {
 		: 0;
 
 	return (
-		<div className="container py-8">
+		<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
 			{/* Breadcrumb */}
 			<button
 				type="button"

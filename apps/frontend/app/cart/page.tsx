@@ -22,7 +22,7 @@ const Cart = () => {
 
 	if (items.length === 0) {
 		return (
-			<div className="container py-20 text-center space-y-4">
+			<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center space-y-4">
 				<ShoppingBag className="h-16 w-16 mx-auto text-muted-foreground" />
 				<h2 className="text-2xl font-bold">Your cart is empty</h2>
 				<p className="text-muted-foreground">
@@ -38,7 +38,7 @@ const Cart = () => {
 	const total = subtotal + DELIVERY_CHARGE;
 
 	return (
-		<div className="container py-8">
+		<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
 			<h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Shopping Cart</h1>
 
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">

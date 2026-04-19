@@ -60,7 +60,7 @@ const Profile = () => {
 	}
 
 	return (
-		<div className="container py-8 max-w-4xl">
+		<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-4xl">
 			<h1 className="text-3xl font-bold mb-8">My Profile</h1>
 
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">

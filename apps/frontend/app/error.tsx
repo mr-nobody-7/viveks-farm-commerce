@@ -10,7 +10,7 @@ export default function Error({
 	reset: () => void;
 }) {
 	return (
-		<div className="container py-20 text-center space-y-4">
+		<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center space-y-4">
 			<h2 className="text-2xl font-bold">Something went wrong!</h2>
 			<p className="text-muted-foreground">
 				We encountered an error while loading this page.

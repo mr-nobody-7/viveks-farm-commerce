@@ -97,7 +97,7 @@ export default function OrderDetail({ params }: OrderDetailProps) {
 
 	if (loading) {
 		return (
-			<div className="container py-20 text-center">
+			<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
 				<p className="text-muted-foreground">Loading order...</p>
 			</div>
 		);
@@ -105,7 +105,7 @@ export default function OrderDetail({ params }: OrderDetailProps) {
 
 	if (!order) {
 		return (
-			<div className="container py-20 text-center space-y-4">
+			<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center space-y-4">
 				<h2 className="text-2xl font-bold">Order not found</h2>
 				<Button asChild>
 					<Link href="/profile/orders">Back to Orders</Link>
@@ -115,7 +115,7 @@ export default function OrderDetail({ params }: OrderDetailProps) {
 	}
 
 	return (
-		<div className="container py-8 max-w-4xl">
+		<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-4xl">
 			<Button variant="ghost" className="mb-4" asChild>
 				<Link href="/profile/orders">
 					<ArrowLeft className="h-4 w-4 mr-2" />

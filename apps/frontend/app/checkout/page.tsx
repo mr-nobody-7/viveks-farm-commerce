@@ -41,7 +41,7 @@ const Checkout = () => {
 
   if (items.length === 0) {
     return (
-      <div className="container py-20 text-center space-y-4">
+      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center space-y-4">
         <h2 className="text-2xl font-bold">Nothing to checkout</h2>
         <Button asChild>
           <Link href="/shop">Continue Shopping</Link>
@@ -147,7 +147,7 @@ const Checkout = () => {
   };
 
   return (
-    <div className="container py-6 sm:py-8">
+    <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
       <h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Checkout</h1>
 
       <form onSubmit={handlePlaceOrder}>

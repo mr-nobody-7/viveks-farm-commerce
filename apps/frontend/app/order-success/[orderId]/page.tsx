@@ -14,7 +14,7 @@ export default function OrderSuccess({ params }: OrderSuccessProps) {
 	const { orderId } = use(params);
 
 	return (
-		<div className="container py-20 max-w-lg mx-auto text-center space-y-6">
+		<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 max-w-lg text-center space-y-6">
 			<CheckCircle className="h-20 w-20 text-primary mx-auto" />
 			<h1 className="text-3xl font-bold">Order Placed!</h1>
 			<p className="text-muted-foreground">

@@ -72,7 +72,7 @@ const Orders = () => {
 
 	if (loading) {
 		return (
-			<div className="container py-8 max-w-4xl">
+			<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-4xl">
 				<div className="flex items-center justify-between mb-8">
 					<div className="h-10 bg-gray-200 rounded w-48 animate-pulse" />
 					<div className="h-10 bg-gray-200 rounded w-32 animate-pulse" />
@@ -87,7 +87,7 @@ const Orders = () => {
 	}
 
 	return (
-		<div className="container py-8 max-w-4xl">
+		<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-4xl">
 			<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-8">
 				<h1 className="text-3xl font-bold">My Orders</h1>
 				<Button variant="outline" className="w-full sm:w-auto" asChild>
