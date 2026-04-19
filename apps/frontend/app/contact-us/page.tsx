@@ -1,11 +1,56 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { MessageCircle, Phone, MapPin } from "lucide-react";
+import { useState } from "react";
+
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const Contact = () => {
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [mobile, setMobile] = useState("");
+  const [message, setMessage] = useState("");
+  const [loading, setLoading] = useState(false);
+  const [successMessage, setSuccessMessage] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setSuccessMessage("");
+    setErrorMessage("");
+
+    try {
+      const response = await fetch(`${API_URL}/api/contact`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ name, email, mobile, message }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setErrorMessage(data.message || "Something went wrong. Please try again.");
+        return;
+      }
+
+      setSuccessMessage(data.message || "We'll get back to you soon!");
+      setName("");
+      setEmail("");
+      setMobile("");
+      setMessage("");
+    } catch {
+      setErrorMessage("Something went wrong. Please try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return (
     <section className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
       <div className="max-w-4xl mx-auto">
@@ -21,27 +66,63 @@ const Contact = () => {
           <Card>
             <CardContent className="p-6 space-y-4">
               <h3 className="font-semibold text-lg">Send us a message</h3>
-              <div className="space-y-2">
-                <Label htmlFor="contact-name">Name</Label>
-                <Input id="contact-name" placeholder="Your name" />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="contact-email">Email</Label>
-                <Input
-                  id="contact-email"
-                  type="email"
-                  placeholder="you@example.com"
-                />
-              </div>
-              <div className="space-y-2">
-                <Label htmlFor="contact-message">Message</Label>
-                <Textarea
-                  id="contact-message"
-                  placeholder="How can we help?"
-                  rows={4}
-                />
-              </div>
-              <Button className="w-full">Send Message</Button>
+        <form className="space-y-4" onSubmit={handleSubmit}>
+          <div className="space-y-2">
+            <Label htmlFor="contact-name">Name</Label>
+            <Input
+              id="contact-name"
+              placeholder="Your name"
+              value={name}
+              onChange={(e) => setName(e.target.value)}
+              required
+              disabled={loading}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="contact-email">Email</Label>
+            <Input
+              id="contact-email"
+              type="email"
+              placeholder="you@example.com"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              disabled={loading}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="contact-mobile">Mobile</Label>
+            <Input
+              id="contact-mobile"
+              type="tel"
+              placeholder="Your mobile number"
+              value={mobile}
+              onChange={(e) => setMobile(e.target.value)}
+              required
+              disabled={loading}
+            />
+          </div>
+          <div className="space-y-2">
+            <Label htmlFor="contact-message">Message</Label>
+            <Textarea
+              id="contact-message"
+              placeholder="How can we help?"
+              rows={4}
+              value={message}
+              onChange={(e) => setMessage(e.target.value)}
+              required
+              disabled={loading}
+            />
+          </div>
+          {successMessage ? (
+            <p className="text-sm text-green-600">{successMessage}</p>
+          ) : null}
+          {errorMessage ? (
+            <p className="text-sm text-red-600">{errorMessage}</p>
+          ) : null}
+          <Button className="w-full" type="submit" disabled={loading}>
+            {loading ? "Sending..." : "Send Message"}
+          </Button>
+        </form>
             </CardContent>
           </Card>
 
