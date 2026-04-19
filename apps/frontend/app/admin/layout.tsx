@@ -106,6 +106,25 @@ export default function AdminLayout({
 				</svg>
 			),
 		},
+		{
+			name: "Coupons",
+			path: "/admin/coupons",
+			icon: (
+				<svg
+					className="w-5 h-5"
+					fill="none"
+					stroke="currentColor"
+					viewBox="0 0 24 24"
+				>
+					<path
+						strokeLinecap="round"
+						strokeLinejoin="round"
+						strokeWidth={2}
+						d="M16 8l2.293-2.293a1 1 0 011.414 0l1.586 1.586a1 1 0 010 1.414L19 11m-3-3l-8.5 8.5A2.121 2.121 0 006 18v0a2 2 0 002 2h1.5a2 2 0 001.414-.586L19 11m-3-3l3 3"
+					/>
+				</svg>
+			),
+		},
 	];
 
 	return (

@@ -115,6 +115,14 @@ const Checkout = () => {
         order_id: paymentData.razorpayOrderId,
         name: "Vivek's Farm",
         description: "Farm Fresh Products",
+        method: {
+          upi: true,
+          card: true,
+          netbanking: true,
+          wallet: true,
+          paylater: true,
+          emi: false,
+        },
         handler: async function (response: any) {
           try {
             await fetch(`${API_URL}/api/payments/verify`, {

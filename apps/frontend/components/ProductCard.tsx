@@ -15,6 +15,10 @@ interface ProductCardProps {
 export const ProductCard = ({ product }: ProductCardProps) => {
 	const variant = product.variants[0];
 	const addItem = useCartStore((state) => state.addItem);
+	const discountPercentage =
+		variant.originalPrice && variant.originalPrice > variant.price
+			? Math.round(((variant.originalPrice - variant.price) / variant.originalPrice) * 100)
+			: 0;
 
 	const handleAddToCart = (e: React.MouseEvent) => {
 		e.preventDefault();
@@ -44,6 +48,11 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 					<Badge className="absolute top-2 right-2" variant="secondary">
 						{variant.label}
 					</Badge>
+					{discountPercentage > 0 && (
+						<Badge className="absolute top-2 left-2" variant="destructive">
+							{discountPercentage}% OFF
+						</Badge>
+					)}
 				</div>
 				<CardContent className="p-4 space-y-3">
 					<h3 className="font-semibold text-foreground line-clamp-1">

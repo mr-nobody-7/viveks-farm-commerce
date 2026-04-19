@@ -31,6 +31,14 @@ interface Product {
 	isActive: boolean;
 }
 
+const getDiscountPercentage = (price: number, originalPrice?: number) => {
+	if (!originalPrice || originalPrice <= 0 || originalPrice <= price) {
+		return 0;
+	}
+
+	return Math.round(((originalPrice - price) / originalPrice) * 100);
+};
+
 export default function AdminProductsPage() {
 	const [products, setProducts] = useState<Product[]>([]);
 	const [categories, setCategories] = useState<Category[]>([]);
@@ -302,6 +310,9 @@ export default function AdminProductsPage() {
 												v.originalPrice > 0
 													? ` (MRP ₹${v.originalPrice})`
 													: ""}
+													{getDiscountPercentage(v.price, v.originalPrice) > 0
+														? ` - ${getDiscountPercentage(v.price, v.originalPrice)}% OFF`
+														: ""}
 												{v.isActive ? "" : " [Inactive]"}
 											</div>
 										))}

@@ -18,13 +18,14 @@ interface Order {
 	_id: string;
 	user: User;
 	totalAmount: number;
-	status: "PLACED" | "PACKED" | "SHIPPED" | "DELIVERED";
+	status: "PENDING" | "PLACED" | "PACKED" | "SHIPPED" | "DELIVERED";
 	paymentMethod: "ONLINE" | "COD";
 	paymentStatus: "PENDING" | "PAID" | "FAILED";
 	createdAt: string;
 }
 
 const orderStatusColors = {
+	PENDING: "bg-gray-100 text-gray-800",
 	PLACED: "bg-blue-100 text-blue-800",
 	PACKED: "bg-orange-100 text-orange-800",
 	SHIPPED: "bg-purple-100 text-purple-800",
@@ -40,6 +41,9 @@ const paymentStatusColors = {
 export default function AdminOrdersPage() {
 	const [orders, setOrders] = useState<Order[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [activeTab, setActiveTab] = useState<"SUCCESS" | "FAILED" | "PENDING">(
+		"SUCCESS",
+	);
 	const router = useRouter();
 
 	const fetchOrders = async () => {
@@ -95,6 +99,21 @@ export default function AdminOrdersPage() {
 		);
 	}
 
+	const successfulOrders = orders.filter(
+		(order) => order.paymentMethod === "COD" || order.paymentStatus === "PAID",
+	);
+	const failedOrders = orders.filter((order) => order.paymentStatus === "FAILED");
+	const pendingPaymentOrders = orders.filter(
+		(order) => order.paymentMethod === "ONLINE" && order.paymentStatus === "PENDING",
+	);
+
+	const displayedOrders =
+		activeTab === "SUCCESS"
+			? successfulOrders
+			: activeTab === "FAILED"
+				? failedOrders
+				: pendingPaymentOrders;
+
 	return (
 		<div className="space-y-6">
 			<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -104,12 +123,48 @@ export default function AdminOrdersPage() {
 				</div>
 			</div>
 
-			{orders.length === 0 ? (
+			<div className="flex flex-wrap gap-2">
+				<button
+					type="button"
+					onClick={() => setActiveTab("SUCCESS")}
+					className={`px-3 py-2 rounded-md text-sm font-medium ${
+						activeTab === "SUCCESS"
+							? "bg-green-100 text-green-700"
+							: "bg-gray-100 text-gray-700"
+					}`}
+				>
+					Successful / COD ({successfulOrders.length})
+				</button>
+				<button
+					type="button"
+					onClick={() => setActiveTab("FAILED")}
+					className={`px-3 py-2 rounded-md text-sm font-medium ${
+						activeTab === "FAILED"
+							? "bg-red-100 text-red-700"
+							: "bg-gray-100 text-gray-700"
+					}`}
+				>
+					Failed Payments ({failedOrders.length})
+				</button>
+				<button
+					type="button"
+					onClick={() => setActiveTab("PENDING")}
+					className={`px-3 py-2 rounded-md text-sm font-medium ${
+						activeTab === "PENDING"
+							? "bg-yellow-100 text-yellow-700"
+							: "bg-gray-100 text-gray-700"
+					}`}
+				>
+					Pending Payments ({pendingPaymentOrders.length})
+				</button>
+			</div>
+
+			{displayedOrders.length === 0 ? (
 				<div className="bg-white rounded-lg border border-gray-200 p-12 text-center space-y-4">
 					<Package className="h-16 w-16 mx-auto text-gray-400" />
-					<h3 className="text-xl font-semibold text-gray-700">No orders yet</h3>
+					<h3 className="text-xl font-semibold text-gray-700">No orders in this section</h3>
 					<p className="text-gray-500">
-						Orders from customers will appear here
+						Switch tabs to review other order groups.
 					</p>
 				</div>
 			) : (
@@ -148,7 +203,7 @@ export default function AdminOrdersPage() {
 							</tr>
 						</thead>
 						<tbody className="bg-white divide-y divide-gray-200">
-							{orders.length === 0 ? (
+							{displayedOrders.length === 0 ? (
 								<tr>
 									<td
 										colSpan={9}
@@ -158,7 +213,7 @@ export default function AdminOrdersPage() {
 									</td>
 								</tr>
 							) : (
-								orders.map((order) => (
+								displayedOrders.map((order) => (
 									<tr key={order._id} className="hover:bg-gray-50">
 										<td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
 											#{order._id.slice(-8).toUpperCase()}

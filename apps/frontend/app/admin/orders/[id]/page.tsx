@@ -37,7 +37,7 @@ interface Order {
 	items: OrderItem[];
 	totalAmount: number;
 	address: Address;
-	status: "PLACED" | "PACKED" | "SHIPPED" | "DELIVERED";
+	status: "PENDING" | "PLACED" | "PACKED" | "SHIPPED" | "DELIVERED";
 	paymentMethod: "ONLINE" | "COD";
 	paymentStatus: "PENDING" | "PAID" | "FAILED";
 	razorpayOrderId?: string;
@@ -51,6 +51,7 @@ interface OrderDetailProps {
 }
 
 const orderStatusColors = {
+	PENDING: "bg-gray-100 text-gray-800",
 	PLACED: "bg-blue-100 text-blue-800",
 	PACKED: "bg-orange-100 text-orange-800",
 	SHIPPED: "bg-purple-100 text-purple-800",

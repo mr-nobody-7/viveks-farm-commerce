@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MetricCardSkeleton } from "@/components/Skeletons";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -12,10 +13,17 @@ interface DashboardMetrics {
 	pendingOrders: number;
 }
 
+interface AnalyticsResponse {
+	paymentSummary: Array<{ _id: string; count: number }>;
+	orderStatusSummary: Array<{ _id: string; count: number }>;
+	monthly: Array<{ label: string; revenue: number; orders: number }>;
+}
+
 export default function AdminDashboardPage() {
 	const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState("");
+	const [analytics, setAnalytics] = useState<AnalyticsResponse | null>(null);
 	const router = useRouter();
 
 	useEffect(() => {
@@ -33,8 +41,19 @@ export default function AdminDashboardPage() {
 					throw new Error("Failed to fetch metrics");
 				}
 
-				const data = await res.json();
-				setMetrics(data);
+				const [metricsData, analyticsRes] = await Promise.all([
+					res.json(),
+					fetch(`${API_URL}/api/admin/analytics`, {
+						credentials: "include",
+					}),
+				]);
+
+				setMetrics(metricsData);
+
+				if (analyticsRes.ok) {
+					const analyticsData = await analyticsRes.json();
+					setAnalytics(analyticsData);
+				}
 			} catch (err) {
 				setError("Failed to load dashboard metrics");
 			} finally {
@@ -157,6 +176,91 @@ export default function AdminDashboardPage() {
 						</div>
 					</div>
 				</div>
+			</div>
+
+			<div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+				<Card>
+					<CardHeader>
+						<CardTitle>Revenue Trend (Paid Orders)</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className="space-y-3">
+							{analytics?.monthly.length ? (
+								analytics.monthly.slice(-6).map((entry) => {
+									const maxRevenue =
+										Math.max(...analytics.monthly.map((m) => m.revenue), 1);
+									const width = Math.max(
+										8,
+										Math.round((entry.revenue / maxRevenue) * 100),
+									);
+
+									return (
+										<div key={entry.label} className="space-y-1">
+											<div className="flex items-center justify-between text-xs text-gray-600">
+												<span>{entry.label}</span>
+												<span>₹{entry.revenue.toLocaleString()}</span>
+											</div>
+											<div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+												<div
+													className="h-full bg-green-500 rounded-full"
+													style={{ width: `${width}%` }}
+												/>
+											</div>
+										</div>
+									);
+								})
+							) : (
+								<p className="text-sm text-gray-500">No revenue data yet.</p>
+							)}
+						</div>
+					</CardContent>
+				</Card>
+
+				<Card>
+					<CardHeader>
+						<CardTitle>Payment Mix</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<div className="space-y-3">
+							{analytics?.paymentSummary.length ? (
+								analytics.paymentSummary.map((item) => {
+									const total = analytics.paymentSummary.reduce(
+										(sum, entry) => sum + entry.count,
+										0,
+									);
+									const percent = total
+										? Math.round((item.count / total) * 100)
+										: 0;
+
+									return (
+										<div key={item._id} className="space-y-1">
+											<div className="flex items-center justify-between text-sm">
+												<span className="font-medium">{item._id}</span>
+												<span className="text-gray-600">
+													{item.count} ({percent}%)
+												</span>
+											</div>
+											<div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+												<div
+													className={`h-full rounded-full ${
+														item._id === "PAID"
+															? "bg-green-500"
+															: item._id === "FAILED"
+																? "bg-red-500"
+																: "bg-yellow-500"
+													}`}
+													style={{ width: `${Math.max(percent, 6)}%` }}
+												/>
+											</div>
+										</div>
+									);
+								})
+							) : (
+								<p className="text-sm text-gray-500">No payment data yet.</p>
+							)}
+						</div>
+					</CardContent>
+				</Card>
 			</div>
 		</div>
 	);
