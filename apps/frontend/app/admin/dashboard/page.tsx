@@ -2,7 +2,25 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import {
+	Bar,
+	BarChart,
+	CartesianGrid,
+	Cell,
+	Legend,
+	Pie,
+	PieChart,
+	ResponsiveContainer,
+	Tooltip,
+	XAxis,
+} from "recharts";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+	ChartContainer,
+	ChartLegendContent,
+	ChartTooltipContent,
+	type ChartConfig,
+} from "@/components/ui/chart";
 import { MetricCardSkeleton } from "@/components/Skeletons";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -18,6 +36,17 @@ interface AnalyticsResponse {
 	orderStatusSummary: Array<{ _id: string; count: number }>;
 	monthly: Array<{ label: string; revenue: number; orders: number }>;
 }
+
+const revenueConfig = {
+	revenue: { label: "Revenue", color: "hsl(142, 76%, 36%)" },
+	orders: { label: "Orders", color: "hsl(210, 90%, 50%)" },
+} satisfies ChartConfig;
+
+const paymentConfig = {
+	PAID: { label: "Paid", color: "hsl(142, 70%, 45%)" },
+	FAILED: { label: "Failed", color: "hsl(0, 80%, 60%)" },
+	PENDING: { label: "Pending", color: "hsl(45, 95%, 50%)" },
+} satisfies ChartConfig;
 
 export default function AdminDashboardPage() {
 	const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
@@ -184,35 +213,34 @@ export default function AdminDashboardPage() {
 						<CardTitle>Revenue Trend (Paid Orders)</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div className="space-y-3">
-							{analytics?.monthly.length ? (
-								analytics.monthly.slice(-6).map((entry) => {
-									const maxRevenue =
-										Math.max(...analytics.monthly.map((m) => m.revenue), 1);
-									const width = Math.max(
-										8,
-										Math.round((entry.revenue / maxRevenue) * 100),
-									);
+						{analytics?.monthly.length ? (
+							<ChartContainer config={revenueConfig}>
+								<ResponsiveContainer width="100%" height="100%">
+									<BarChart data={analytics.monthly.slice(-6)}>
+										<CartesianGrid strokeDasharray="3 3" vertical={false} />
+										<XAxis dataKey="label" tickLine={false} axisLine={false} />
+										<Tooltip
+											content={
+												<ChartTooltipContent
+													formatter={(value, item) => {
+														if (item.dataKey === "revenue") {
+															return `Rs.${value.toLocaleString()}`;
+														}
 
-									return (
-										<div key={entry.label} className="space-y-1">
-											<div className="flex items-center justify-between text-xs text-gray-600">
-												<span>{entry.label}</span>
-												<span>₹{entry.revenue.toLocaleString()}</span>
-											</div>
-											<div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-												<div
-													className="h-full bg-green-500 rounded-full"
-													style={{ width: `${width}%` }}
+														return value.toLocaleString();
+													}}
 												/>
-											</div>
-										</div>
-									);
-								})
-							) : (
-								<p className="text-sm text-gray-500">No revenue data yet.</p>
-							)}
-						</div>
+											}
+										/>
+										<Legend content={<ChartLegendContent />} />
+										<Bar dataKey="revenue" fill="var(--color-revenue)" radius={6} />
+										<Bar dataKey="orders" fill="var(--color-orders)" radius={6} />
+									</BarChart>
+								</ResponsiveContainer>
+							</ChartContainer>
+						) : (
+							<p className="text-sm text-gray-500">No revenue data yet.</p>
+						)}
 					</CardContent>
 				</Card>
 
@@ -221,44 +249,41 @@ export default function AdminDashboardPage() {
 						<CardTitle>Payment Mix</CardTitle>
 					</CardHeader>
 					<CardContent>
-						<div className="space-y-3">
-							{analytics?.paymentSummary.length ? (
-								analytics.paymentSummary.map((item) => {
-									const total = analytics.paymentSummary.reduce(
-										(sum, entry) => sum + entry.count,
-										0,
-									);
-									const percent = total
-										? Math.round((item.count / total) * 100)
-										: 0;
-
-									return (
-										<div key={item._id} className="space-y-1">
-											<div className="flex items-center justify-between text-sm">
-												<span className="font-medium">{item._id}</span>
-												<span className="text-gray-600">
-													{item.count} ({percent}%)
-												</span>
-											</div>
-											<div className="h-2 bg-gray-100 rounded-full overflow-hidden">
-												<div
-													className={`h-full rounded-full ${
-														item._id === "PAID"
-															? "bg-green-500"
-															: item._id === "FAILED"
-																? "bg-red-500"
-																: "bg-yellow-500"
-													}`}
-													style={{ width: `${Math.max(percent, 6)}%` }}
+						{analytics?.paymentSummary.length ? (
+							<ChartContainer config={paymentConfig}>
+								<ResponsiveContainer width="100%" height="100%">
+									<PieChart>
+										<Tooltip
+											content={
+												<ChartTooltipContent
+													formatter={(value) => value.toLocaleString()}
 												/>
-											</div>
-										</div>
-									);
-								})
-							) : (
-								<p className="text-sm text-gray-500">No payment data yet.</p>
-							)}
-						</div>
+											}
+										/>
+										<Legend content={<ChartLegendContent />} />
+										<Pie
+											data={analytics.paymentSummary.map((item) => ({
+												status: item._id,
+												count: item.count,
+											}))}
+											nameKey="status"
+											dataKey="count"
+											innerRadius={55}
+											outerRadius={90}
+										>
+											{analytics.paymentSummary.map((item) => (
+												<Cell
+													key={item._id}
+													fill={`var(--color-${item._id})`}
+												/>
+											))}
+										</Pie>
+									</PieChart>
+								</ResponsiveContainer>
+							</ChartContainer>
+						) : (
+							<p className="text-sm text-gray-500">No payment data yet.</p>
+						)}
 					</CardContent>
 				</Card>
 			</div>
