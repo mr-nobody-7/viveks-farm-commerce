@@ -14,9 +14,11 @@
 - Root Directory: repository root
 - Railway will use nixpacks.toml from repo root to:
   - force Node 20+
+  - use pnpm 9 compatible with project engines
   - build backend only (pnpm --filter backend build)
   - start backend only (pnpm --filter backend start)
-- Build/Start commands in Railway UI can be left empty (nixpacks.toml handles them)
+- Build/Start commands in Railway UI must be empty so nixpacks.toml is respected
+- If Railway still shows `pnpm install --frozen-lockfile && pnpm build` in logs, clear custom Build Command and Start Command in service settings and redeploy
 - Add all env variables from apps/backend/.env.example
 - After deploy, note the Railway URL for use in Vercel
 
