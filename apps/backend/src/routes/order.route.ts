@@ -60,12 +60,12 @@ const evaluateCouponDiscount = (
 		applicableProductIds.size === 0
 			? subtotalAmount
 			: items.reduce((sum, item) => {
-				if (!applicableProductIds.has(item.productId.toString())) {
-					return sum;
-				}
+					if (!applicableProductIds.has(item.productId.toString())) {
+						return sum;
+					}
 
-				return sum + item.price * item.quantity;
-			}, 0);
+					return sum + item.price * item.quantity;
+				}, 0);
 
 	if (eligibleSubtotal <= 0) {
 		throw new Error("Coupon is not applicable to items in your cart");
@@ -123,7 +123,9 @@ const calculateOrderPricing = async (
 		subtotalAmount,
 		deliveryCharge: DELIVERY_CHARGE,
 		discountAmount,
-		totalAmount: roundCurrency(subtotalAmount + DELIVERY_CHARGE - discountAmount),
+		totalAmount: roundCurrency(
+			subtotalAmount + DELIVERY_CHARGE - discountAmount,
+		),
 		couponCode: normalizedCouponCode,
 		message: `Coupon ${normalizedCouponCode} applied successfully`,
 	};
@@ -216,7 +218,9 @@ router.post("/orders", requireAuth, async (req: AuthRequest, res) => {
 			isActive: true,
 		};
 
-		const currentCoupon = await Coupon.findOne({ code: appliedCouponCode }).lean();
+		const currentCoupon = await Coupon.findOne({
+			code: appliedCouponCode,
+		}).lean();
 
 		if (!currentCoupon) {
 			return res.status(400).json({ message: "Invalid coupon code" });

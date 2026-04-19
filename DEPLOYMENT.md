@@ -1,11 +1,28 @@
+## Pre-Push Verification (Run Before Every Push)
+- Install deps: pnpm install --frozen-lockfile
+- Run deployment-safe verification: pnpm verify:deploy
+- Or run step-by-step:
+  - pnpm build
+  - pnpm --filter backend build
+  - pnpm --filter frontend build
+- Optional fast split checks:
+  - pnpm --filter backend build
+  - pnpm --filter frontend build
+
 ## Backend (Railway)
 - Connect GitHub repo on railway.app
-- Set Root Directory to: apps/backend
-- Build Command: pnpm install --frozen-lockfile && pnpm build
-- Start Command: node dist/server.js
-- Watch Paths: /apps/backend/**
+- Root Directory: repository root
+- Railway will use nixpacks.toml from repo root to:
+  - force Node 20+
+  - build backend only (pnpm --filter backend build)
+  - start backend only (pnpm --filter backend start)
+- Build/Start commands in Railway UI can be left empty (nixpacks.toml handles them)
 - Add all env variables from apps/backend/.env.example
 - After deploy, note the Railway URL for use in Vercel
+
+Why this matters:
+- Next.js 16 requires Node >= 20.9.0.
+- If Railway builds with Node 18, frontend build fails even if backend alone is fine.
 
 ## Frontend (Vercel)
 - Connect GitHub repo on vercel.com

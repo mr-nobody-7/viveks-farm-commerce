@@ -65,7 +65,8 @@ router.get("/categories/:slug/products", async (req, res) => {
 			isActive: true,
 		});
 
-		if (!category) return res.status(404).json({ message: "Category not found" });
+		if (!category)
+			return res.status(404).json({ message: "Category not found" });
 
 		const products = await Product.find({
 			category: category._id,

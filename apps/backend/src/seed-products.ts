@@ -95,7 +95,8 @@ const productsByCategory = {
 		{
 			name: "Dry Fruit Ladoo",
 			slug: "dry-fruit-ladoo",
-			description: "Nutritious dry fruit ladoos packed with premium ingredients.",
+			description:
+				"Nutritious dry fruit ladoos packed with premium ingredients.",
 			variants: [
 				{ label: "250g", price: 349 },
 				{ label: "500g", price: 649 },
@@ -115,7 +116,8 @@ const productsByCategory = {
 		{
 			name: "Tulsi Honey",
 			slug: "tulsi-honey",
-			description: "Tulsi-infused honey known for soothing flavor and wellness.",
+			description:
+				"Tulsi-infused honey known for soothing flavor and wellness.",
 			variants: [
 				{ label: "250g", price: 249 },
 				{ label: "500g", price: 459 },
@@ -159,7 +161,9 @@ const seedProducts = async () => {
 			if (!categoryId) continue;
 
 			for (const productData of productsByCategory[category.slug]) {
-				const existingProduct = await Product.findOne({ slug: productData.slug }).lean();
+				const existingProduct = await Product.findOne({
+					slug: productData.slug,
+				}).lean();
 				if (existingProduct) {
 					continue;
 				}

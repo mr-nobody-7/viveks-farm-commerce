@@ -125,26 +125,27 @@ router.get("/admin/dashboard", requireAdmin, async (_req, res) => {
 });
 
 router.get("/admin/analytics", requireAdmin, async (_req, res) => {
-	const [paymentSummary, orderStatusSummary, monthlyRevenue] = await Promise.all([
-		Order.aggregate([
-			{ $group: { _id: "$paymentStatus", count: { $sum: 1 } } },
-		]),
-		Order.aggregate([{ $group: { _id: "$status", count: { $sum: 1 } } }]),
-		Order.aggregate([
-			{ $match: { paymentStatus: "PAID" } },
-			{
-				$group: {
-					_id: {
-						year: { $year: "$createdAt" },
-						month: { $month: "$createdAt" },
+	const [paymentSummary, orderStatusSummary, monthlyRevenue] =
+		await Promise.all([
+			Order.aggregate([
+				{ $group: { _id: "$paymentStatus", count: { $sum: 1 } } },
+			]),
+			Order.aggregate([{ $group: { _id: "$status", count: { $sum: 1 } } }]),
+			Order.aggregate([
+				{ $match: { paymentStatus: "PAID" } },
+				{
+					$group: {
+						_id: {
+							year: { $year: "$createdAt" },
+							month: { $month: "$createdAt" },
+						},
+						revenue: { $sum: "$totalAmount" },
+						orders: { $sum: 1 },
 					},
-					revenue: { $sum: "$totalAmount" },
-					orders: { $sum: 1 },
 				},
-			},
-			{ $sort: { "_id.year": 1, "_id.month": 1 } },
-		]),
-	]);
+				{ $sort: { "_id.year": 1, "_id.month": 1 } },
+			]),
+		]);
 
 	const monthly = monthlyRevenue.map((entry) => ({
 		label: `${entry._id.month}/${entry._id.year}`,
@@ -192,11 +193,7 @@ router.patch("/admin/categories/:id", requireAdmin, async (req, res) => {
 
 	if (typeof payload.name === "string" && payload.name.trim()) {
 		payload.name = payload.name.trim();
-		payload.slug = await generateUniqueSlug(
-			Category,
-			payload.name,
-			categoryId,
-		);
+		payload.slug = await generateUniqueSlug(Category, payload.name, categoryId);
 	}
 
 	const category = await Category.findByIdAndUpdate(req.params.id, payload, {
@@ -243,11 +240,7 @@ router.patch("/admin/products/:id", requireAdmin, async (req, res) => {
 
 	if (typeof payload.name === "string" && payload.name.trim()) {
 		payload.name = payload.name.trim();
-		payload.slug = await generateUniqueSlug(
-			Product,
-			payload.name,
-			productId,
-		);
+		payload.slug = await generateUniqueSlug(Product, payload.name, productId);
 	}
 
 	const product = await Product.findByIdAndUpdate(req.params.id, payload, {
@@ -291,7 +284,13 @@ router.get("/admin/orders/:id", requireAdmin, async (req, res) => {
 router.patch("/admin/orders/:id/status", requireAdmin, async (req, res) => {
 	const { status } = req.body;
 
-	const allowedStatuses = ["PENDING", "PLACED", "PACKED", "SHIPPED", "DELIVERED"];
+	const allowedStatuses = [
+		"PENDING",
+		"PLACED",
+		"PACKED",
+		"SHIPPED",
+		"DELIVERED",
+	];
 
 	if (!allowedStatuses.includes(status)) {
 		return res.status(400).json({ message: "Invalid status" });

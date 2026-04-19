@@ -8,7 +8,9 @@ export const sendEmail = async (
 	const senderName = process.env.BREVO_SENDER_NAME || "Vivek's Farm";
 
 	if (!apiKey || !senderEmail) {
-		console.error("Brevo mailer is not configured (missing API key or sender email)");
+		console.error(
+			"Brevo mailer is not configured (missing API key or sender email)",
+		);
 		return;
 	}
 
