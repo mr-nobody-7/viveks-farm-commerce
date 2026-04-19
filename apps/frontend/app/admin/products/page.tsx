@@ -199,6 +199,36 @@ export default function AdminProductsPage() {
 	const handleSubmit = async (e: React.FormEvent) => {
 		e.preventDefault();
 
+		const sanitizedVariants = formData.variants.map((variant) => {
+			const parsedPrice = Number(variant.price);
+			const parsedOriginalPrice = Number(variant.originalPrice);
+
+			const price = Number.isFinite(parsedPrice) ? parsedPrice : 0;
+			const originalPrice =
+				Number.isFinite(parsedOriginalPrice) && parsedOriginalPrice > price
+					? parsedOriginalPrice
+					: undefined;
+
+			return {
+				...variant,
+				label: variant.label.trim(),
+				price,
+				originalPrice,
+			};
+		});
+
+		if (sanitizedVariants.length === 0) {
+			alert("Please add at least one variant");
+			return;
+		}
+
+		if (
+			sanitizedVariants.some((variant) => !variant.label || variant.price <= 0)
+		) {
+			alert("Each variant needs a label and a valid selling price");
+			return;
+		}
+
 		try {
 			const url = editingProduct
 				? `${API_URL}/api/admin/products/${editingProduct._id}`
@@ -208,7 +238,10 @@ export default function AdminProductsPage() {
 				method: editingProduct ? "PATCH" : "POST",
 				headers: { "Content-Type": "application/json" },
 				credentials: "include",
-				body: JSON.stringify(formData),
+				body: JSON.stringify({
+					...formData,
+					variants: sanitizedVariants,
+				}),
 			});
 
 			if (!res.ok) throw new Error("Failed to save product");
@@ -444,10 +477,20 @@ export default function AdminProductsPage() {
 										Add Variant
 									</Button>
 								</div>
+								<p className="mb-3 text-xs text-gray-500">
+									Set selling price in "Price". Add "MRP" only if you want discount
+									to be shown automatically.
+								</p>
+								<div className="mb-2 hidden grid-cols-[minmax(220px,1fr)_128px_176px_auto] gap-2 px-1 text-xs font-medium text-gray-500 md:grid">
+									<span>Variant Label</span>
+									<span>Price</span>
+									<span>MRP (Optional)</span>
+									<span>Status</span>
+								</div>
 								{formData.variants.map((variant, index) => (
 									<div
 										key={index}
-										className="flex flex-wrap gap-2 mb-2 items-center"
+										className="mb-3 flex flex-wrap items-center gap-2"
 									>
 										<input
 											type="text"
@@ -457,18 +500,20 @@ export default function AdminProductsPage() {
 											onChange={(e) =>
 												handleVariantChange(index, "label", e.target.value)
 											}
-											className="flex-1 min-w-[220px] px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+											className="flex-1 min-w-55 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
 										/>
 										<input
 											type="number"
 											placeholder="Price"
 											required
+											min="0"
+											step="0.01"
 											value={variant.price}
 											onChange={(e) =>
 												handleVariantChange(
 													index,
 													"price",
-													Number(e.target.value),
+													e.target.value === "" ? 0 : Number(e.target.value),
 												)
 											}
 											className="w-32 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
@@ -476,6 +521,8 @@ export default function AdminProductsPage() {
 										<input
 											type="number"
 											placeholder="MRP / Original Price"
+											min="0"
+											step="0.01"
 											value={variant.originalPrice ?? ""}
 											onChange={(e) =>
 												handleVariantChange(
@@ -486,6 +533,11 @@ export default function AdminProductsPage() {
 											}
 											className="w-44 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
 										/>
+										{getDiscountPercentage(variant.price, variant.originalPrice) > 0 && (
+											<span className="text-xs font-medium text-green-700">
+												{getDiscountPercentage(variant.price, variant.originalPrice)}% OFF
+											</span>
+										)}
 										<label className="flex items-center gap-2 px-2 text-sm text-gray-700">
 											<input
 												type="checkbox"
