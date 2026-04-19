@@ -62,11 +62,12 @@ router.post("/auth/verify-otp", async (req, res) => {
 	}
 
 	const token = generateToken(user._id.toString());
+	const isProduction = process.env.NODE_ENV === "production";
 
 	res.cookie("token", token, {
 		httpOnly: true,
-		secure: false,
-		sameSite: "lax",
+		secure: isProduction,
+		sameSite: isProduction ? "none" : "lax",
 	});
 
 	res.json({ message: "Login successful", user });

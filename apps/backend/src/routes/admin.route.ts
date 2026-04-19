@@ -42,10 +42,12 @@ router.post("/admin/login", async (req, res) => {
 		process.env.JWT_SECRET || "fallback-secret-key",
 		{ expiresIn: "7d" },
 	);
+	const isProduction = process.env.NODE_ENV === "production";
 
 	res.cookie("adminToken", token, {
 		httpOnly: true,
-		sameSite: "lax",
+		secure: isProduction,
+		sameSite: isProduction ? "none" : "lax",
 	});
 
 	const loginTime = new Date().toLocaleString("en-IN", {
