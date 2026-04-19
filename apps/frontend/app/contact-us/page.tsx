@@ -35,7 +35,9 @@ const Contact = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        setErrorMessage(data.message || "Something went wrong. Please try again.");
+        setErrorMessage(
+          data.message || "Something went wrong. Please try again.",
+        );
         return;
       }
 
@@ -66,63 +68,63 @@ const Contact = () => {
           <Card>
             <CardContent className="p-6 space-y-4">
               <h3 className="font-semibold text-lg">Send us a message</h3>
-        <form className="space-y-4" onSubmit={handleSubmit}>
-          <div className="space-y-2">
-            <Label htmlFor="contact-name">Name</Label>
-            <Input
-              id="contact-name"
-              placeholder="Your name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
-              required
-              disabled={loading}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="contact-email">Email</Label>
-            <Input
-              id="contact-email"
-              type="email"
-              placeholder="you@example.com"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              disabled={loading}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="contact-mobile">Mobile</Label>
-            <Input
-              id="contact-mobile"
-              type="tel"
-              placeholder="Your mobile number"
-              value={mobile}
-              onChange={(e) => setMobile(e.target.value)}
-              required
-              disabled={loading}
-            />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="contact-message">Message</Label>
-            <Textarea
-              id="contact-message"
-              placeholder="How can we help?"
-              rows={4}
-              value={message}
-              onChange={(e) => setMessage(e.target.value)}
-              required
-              disabled={loading}
-            />
-          </div>
-          {successMessage ? (
-            <p className="text-sm text-green-600">{successMessage}</p>
-          ) : null}
-          {errorMessage ? (
-            <p className="text-sm text-red-600">{errorMessage}</p>
-          ) : null}
-          <Button className="w-full" type="submit" disabled={loading}>
-            {loading ? "Sending..." : "Send Message"}
-          </Button>
-        </form>
+              <form className="space-y-4" onSubmit={handleSubmit}>
+                <div className="space-y-2">
+                  <Label htmlFor="contact-name">Name</Label>
+                  <Input
+                    id="contact-name"
+                    placeholder="Your name"
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    required
+                    disabled={loading}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="contact-email">Email</Label>
+                  <Input
+                    id="contact-email"
+                    type="email"
+                    placeholder="you@example.com"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    disabled={loading}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="contact-mobile">Mobile</Label>
+                  <Input
+                    id="contact-mobile"
+                    type="tel"
+                    placeholder="Your mobile number"
+                    value={mobile}
+                    onChange={(e) => setMobile(e.target.value)}
+                    required
+                    disabled={loading}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label htmlFor="contact-message">Message</Label>
+                  <Textarea
+                    id="contact-message"
+                    placeholder="How can we help?"
+                    rows={4}
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    required
+                    disabled={loading}
+                  />
+                </div>
+                {successMessage ? (
+                  <p className="text-sm text-green-600">{successMessage}</p>
+                ) : null}
+                {errorMessage ? (
+                  <p className="text-sm text-red-600">{errorMessage}</p>
+                ) : null}
+                <Button className="w-full" type="submit" disabled={loading}>
+                  {loading ? "Sending..." : "Send Message"}
+                </Button>
+              </form>
             </CardContent>
           </Card>
 
@@ -136,7 +138,7 @@ const Contact = () => {
                 <div>
                   <h4 className="font-semibold">Phone</h4>
                   <p className="text-sm text-muted-foreground">
-                    +91 98765 43210
+                    +91 89850 46761{" "}
                   </p>
                 </div>
               </CardContent>

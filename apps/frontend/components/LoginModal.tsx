@@ -94,7 +94,7 @@ export const LoginModal = ({ open, onOpenChange }: LoginModalProps) => {
 							<Input
 								id="mobile"
 								type="tel"
-								placeholder="+91 98765 43210"
+								placeholder="+91 89850 46761"
 								value={mobile}
 								onChange={(e) => setMobile(e.target.value)}
 								required

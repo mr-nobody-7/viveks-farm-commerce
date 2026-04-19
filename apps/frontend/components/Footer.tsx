@@ -56,10 +56,10 @@ export const Footer = () => {
           <div>
             <h4 className="font-semibold mb-3">Get in Touch</h4>
             <div className="space-y-2 text-sm text-muted-foreground">
-              <p>+91 98765 43210</p>
+              <p>+91 89850 46761</p>
               <p>hello@viveksfarm.com</p>
               <a
-                href="https://wa.me/919876543210"
+                href="https://wa.me/918985046761"
                 target="_blank"
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-1 text-primary hover:underline"
