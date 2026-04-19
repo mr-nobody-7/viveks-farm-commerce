@@ -10,7 +10,8 @@
 		"lint": "biome lint .",
 		"format": "biome format . --write",
 		"check": "biome check . --write",
-		"seed": "tsx src/seed/seed.ts"
+		"seed": "tsx src/seed/seed.ts",
+		"seed:admin": "ts-node src/seed-admin.ts"
 	},
 	"keywords": [],
 	"author": "",
@@ -37,6 +38,7 @@
 		"@types/jsonwebtoken": "^9.0.10",
 		"@types/multer": "^2.0.0",
 		"@types/node": "^20.19.33",
+		"ts-node": "^10.9.2",
 		"tsx": "^4.21.0",
 		"typescript": "^5.9.3"
 	}
