@@ -6,24 +6,23 @@ const PORT = process.env.PORT || 4000;
 const DB_RETRY_INTERVAL_MS = 5000;
 
 const startServer = async () => {
-	app.listen(PORT, () => {
-		console.log(`Backend running on http://localhost:${PORT}`);
-	});
-
-	const connectWithRetry = async () => {
+	while (true) {
 		try {
 			await connectToDatabase();
+			break;
 		} catch {
 			console.error(
 				`Retrying database connection in ${DB_RETRY_INTERVAL_MS / 1000}s...`,
 			);
-			setTimeout(() => {
-				void connectWithRetry();
-			}, DB_RETRY_INTERVAL_MS);
+			await new Promise((resolve) => {
+				setTimeout(resolve, DB_RETRY_INTERVAL_MS);
+			});
 		}
-	};
+	}
 
-	await connectWithRetry();
+	app.listen(PORT, () => {
+		console.log(`Backend running on http://localhost:${PORT}`);
+	});
 };
 
 startServer();
