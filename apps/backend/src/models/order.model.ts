@@ -21,6 +21,10 @@ export interface IAddress {
 export interface IOrder extends Document {
 	user: Types.ObjectId;
 	items: IOrderItem[];
+	subtotalAmount: number;
+	deliveryCharge: number;
+	discountAmount: number;
+	couponCode?: string;
 	totalAmount: number;
 	address: IAddress;
 	status: "PENDING" | "PLACED" | "PACKED" | "SHIPPED" | "DELIVERED";
@@ -59,6 +63,10 @@ const orderSchema = new Schema<IOrder>(
 	{
 		user: { type: Schema.Types.ObjectId, ref: "User", required: true },
 		items: [orderItemSchema],
+		subtotalAmount: { type: Number, required: true },
+		deliveryCharge: { type: Number, required: true, default: 0 },
+		discountAmount: { type: Number, required: true, default: 0 },
+		couponCode: { type: String, uppercase: true, trim: true },
 		totalAmount: { type: Number, required: true },
 		address: addressSchema,
 		status: {

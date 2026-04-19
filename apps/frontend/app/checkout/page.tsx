@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
@@ -17,31 +17,46 @@ const DELIVERY_CHARGE = 49;
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 const ENABLE_COD = process.env.NEXT_PUBLIC_ENABLE_COD === "true";
 
+type CouponPricing = {
+  subtotalAmount: number;
+  deliveryCharge: number;
+  discountAmount: number;
+  totalAmount: number;
+  couponCode?: string;
+  message?: string;
+};
+
 const Checkout = () => {
   const items = useCartStore((state) => state.items);
   const clearCart = useCartStore((state) => state.clearCart);
   const user = useAuthStore((state) => state.user);
-  
-  // Derive subtotal from items
-  const subtotal = items.reduce(
-    (sum, item) => sum + item.price * item.quantity,
-    0,
+  const subtotal = useMemo(
+    () => items.reduce((sum, item) => sum + item.price * item.quantity, 0),
+    [items],
   );
   const router = useRouter();
   const [payment, setPayment] = useState("ONLINE");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
+  const [couponCode, setCouponCode] = useState("");
+  const [couponLoading, setCouponLoading] = useState(false);
+  const [couponMessage, setCouponMessage] = useState("");
+  const [appliedPricing, setAppliedPricing] = useState<CouponPricing | null>(null);
 
-  // Login enforcement
   useEffect(() => {
     if (!user) {
       router.push("/");
     }
   }, [user, router]);
 
+  useEffect(() => {
+    setAppliedPricing(null);
+    setCouponMessage("");
+  }, [items]);
+
   if (items.length === 0) {
     return (
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center space-y-4">
+      <div className="container mx-auto px-4 py-20 text-center space-y-4 sm:px-6 lg:px-8">
         <h2 className="text-2xl font-bold">Nothing to checkout</h2>
         <Button asChild>
           <Link href="/shop">Continue Shopping</Link>
@@ -50,7 +65,50 @@ const Checkout = () => {
     );
   }
 
-  const total = subtotal + DELIVERY_CHARGE;
+  const discountAmount = appliedPricing?.discountAmount || 0;
+  const total = subtotal + DELIVERY_CHARGE - discountAmount;
+
+  const handleApplyCoupon = async () => {
+    setError("");
+    setCouponMessage("");
+
+    if (!couponCode.trim()) {
+      setCouponMessage("Enter a coupon code");
+      setAppliedPricing(null);
+      return;
+    }
+
+    setCouponLoading(true);
+
+    try {
+      const response = await fetch(`${API_URL}/api/orders/coupon/validate`, {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          couponCode,
+          items,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        setAppliedPricing(null);
+        setCouponMessage(data?.message || "Coupon could not be applied");
+        return;
+      }
+
+      setAppliedPricing(data);
+      setCouponCode(data.couponCode || couponCode.toUpperCase());
+      setCouponMessage(data.message || "Coupon applied");
+    } catch (_err) {
+      setAppliedPricing(null);
+      setCouponMessage("Failed to apply coupon. Try again.");
+    } finally {
+      setCouponLoading(false);
+    }
+  };
 
   const handlePlaceOrder = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -68,7 +126,6 @@ const Checkout = () => {
     };
 
     try {
-      // Create order with payment method
       const response = await fetch(`${API_URL}/api/orders`, {
         method: "POST",
         credentials: "include",
@@ -77,24 +134,24 @@ const Checkout = () => {
           items,
           address,
           paymentMethod: payment,
+          couponCode: appliedPricing?.couponCode,
         }),
       });
 
+      const data = await response.json();
+
       if (!response.ok) {
-        throw new Error("Failed to place order");
+        throw new Error(data?.message || "Failed to place order");
       }
 
-      const data = await response.json();
       const orderId = data.orderId;
 
-      // If COD, just redirect to success page
       if (payment === "COD") {
         clearCart();
         router.push(`/order-success/${orderId}`);
         return;
       }
 
-      // If ONLINE, initiate Razorpay payment
       const paymentResponse = await fetch(`${API_URL}/api/payments/create-order`, {
         method: "POST",
         credentials: "include",
@@ -123,24 +180,24 @@ const Checkout = () => {
           paylater: true,
           emi: false,
         },
-        handler: async function (response: any) {
+        handler: async (paymentResult: unknown) => {
           try {
             await fetch(`${API_URL}/api/payments/verify`, {
               method: "POST",
               credentials: "include",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify(response),
+              body: JSON.stringify(paymentResult),
             });
 
             clearCart();
             router.push(`/order-success/${orderId}`);
-          } catch (err) {
+          } catch (_err) {
             setError("Payment verification failed");
             setLoading(false);
           }
         },
         modal: {
-          ondismiss: function () {
+          ondismiss: () => {
             setLoading(false);
           },
         },
@@ -149,7 +206,11 @@ const Checkout = () => {
       const rzp = new (window as any).Razorpay(options);
       rzp.open();
     } catch (err) {
-      setError("Failed to place order. Please try again.");
+      setError(
+        err instanceof Error
+          ? err.message
+          : "Failed to place order. Please try again.",
+      );
       setLoading(false);
     }
   };
@@ -239,6 +300,38 @@ const Checkout = () => {
           <Card className="h-fit lg:sticky lg:top-24">
             <CardContent className="p-6 space-y-4">
               <h3 className="font-semibold text-lg">Order Summary</h3>
+              <div className="space-y-2">
+                <Label htmlFor="coupon">Coupon Code</Label>
+                <div className="flex gap-2">
+                  <Input
+                    id="coupon"
+                    value={couponCode}
+                    onChange={(event) => {
+                      setCouponCode(event.target.value.toUpperCase());
+                      setAppliedPricing(null);
+                      setCouponMessage("");
+                    }}
+                    placeholder="Enter coupon"
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={handleApplyCoupon}
+                    disabled={couponLoading || loading}
+                  >
+                    {couponLoading ? "Applying..." : "Apply"}
+                  </Button>
+                </div>
+                {couponMessage && (
+                  <p
+                    className={`text-xs ${
+                      appliedPricing ? "text-green-600" : "text-destructive"
+                    }`}
+                  >
+                    {couponMessage}
+                  </p>
+                )}
+              </div>
               <div className="space-y-2 text-sm">
                 {items.map((item) => (
                   <div
@@ -262,6 +355,12 @@ const Checkout = () => {
                   <span className="text-muted-foreground">Delivery</span>
                   <span>₹{DELIVERY_CHARGE}</span>
                 </div>
+                {discountAmount > 0 && (
+                  <div className="flex justify-between text-green-600">
+                    <span>Coupon Discount</span>
+                    <span>-₹{discountAmount}</span>
+                  </div>
+                )}
               </div>
               <Separator />
               <div className="flex justify-between font-bold text-lg">
