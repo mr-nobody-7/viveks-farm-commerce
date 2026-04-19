@@ -6,10 +6,11 @@
   "main": "index.js",
   "scripts": {
     "dev": "pnpm -r dev",
-    "build": "pnpm -r build",
+    "build": "pnpm -r build && pnpm build:deploy-compat",
     "start": "pnpm --filter backend start",
     "build:backend": "pnpm --filter backend build",
     "build:frontend": "pnpm --filter frontend build",
+    "build:deploy-compat": "mkdir -p dist && printf 'require(\"../apps/backend/dist/server.js\")\n' > dist/server.js",
     "lint": "pnpm -r lint",
     "format": "pnpm -r format",
     "check": "pnpm -r check",

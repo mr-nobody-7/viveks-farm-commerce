@@ -21,6 +21,7 @@
 - Build/Start commands in Railway UI must be empty so nixpacks.toml is respected
 - If Railway still shows `pnpm install --frozen-lockfile && pnpm build` in logs, clear custom Build Command and Start Command in service settings and redeploy
 - If runtime logs show `Cannot find module '/app/dist/server.js'`, it means Railway is still using an old start command (`node dist/server.js`). Clear UI start command and redeploy.
+- Compatibility fallback is included: build now mirrors `apps/backend/dist` into root `dist`, so even stale `node dist/server.js` start commands will still boot.
 - Add all env variables from apps/backend/.env.example
 - After deploy, note the Railway URL for use in Vercel
 
