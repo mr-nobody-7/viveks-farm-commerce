@@ -17,8 +17,10 @@
   - use pnpm 9 compatible with project engines
   - build backend only (pnpm --filter backend build)
   - start backend only (pnpm --filter backend start)
+- railway.json also pins build/start commands in-repo for consistency
 - Build/Start commands in Railway UI must be empty so nixpacks.toml is respected
 - If Railway still shows `pnpm install --frozen-lockfile && pnpm build` in logs, clear custom Build Command and Start Command in service settings and redeploy
+- If runtime logs show `Cannot find module '/app/dist/server.js'`, it means Railway is still using an old start command (`node dist/server.js`). Clear UI start command and redeploy.
 - Add all env variables from apps/backend/.env.example
 - After deploy, note the Railway URL for use in Vercel
 
