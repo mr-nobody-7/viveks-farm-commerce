@@ -23,7 +23,7 @@ export interface IOrder extends Document {
 	items: IOrderItem[];
 	totalAmount: number;
 	address: IAddress;
-	status: "PLACED" | "PACKED" | "SHIPPED" | "DELIVERED";
+	status: "PENDING" | "PLACED" | "PACKED" | "SHIPPED" | "DELIVERED";
 	paymentMethod: "ONLINE" | "COD";
 	paymentStatus: "PENDING" | "PAID" | "FAILED";
 	razorpayOrderId?: string;
@@ -63,7 +63,7 @@ const orderSchema = new Schema<IOrder>(
 		address: addressSchema,
 		status: {
 			type: String,
-			enum: ["PLACED", "PACKED", "SHIPPED", "DELIVERED"],
+			enum: ["PENDING", "PLACED", "PACKED", "SHIPPED", "DELIVERED"],
 			default: "PLACED",
 		},
 		paymentMethod: {

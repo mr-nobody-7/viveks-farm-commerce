@@ -13,7 +13,7 @@ export async function generateMetadata({
 
 	try {
 		const response = await fetch(
-			`${process.env.NEXT_PUBLIC_API_URL}/products/${product_id}`,
+			`${process.env.NEXT_PUBLIC_API_URL}/api/products/${product_id}`,
 			{ cache: "no-store" },
 		);
 

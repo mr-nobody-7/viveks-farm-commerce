@@ -1,5 +1,3 @@
-import * as brevo from "@getbrevo/brevo";
-
 export const sendEmail = async (
 	to: string,
 	subject: string,
@@ -15,19 +13,28 @@ export const sendEmail = async (
 	}
 
 	try {
-		const apiInstance = new brevo.TransactionalEmailsApi();
-		apiInstance.setApiKey(brevo.TransactionalEmailsApiApiKeys.apiKey, apiKey);
+		const response = await fetch("https://api.brevo.com/v3/smtp/email", {
+			method: "POST",
+			headers: {
+				accept: "application/json",
+				"api-key": apiKey,
+				"content-type": "application/json",
+			},
+			body: JSON.stringify({
+				sender: {
+					email: senderEmail,
+					name: senderName,
+				},
+				to: [{ email: to }],
+				subject,
+				htmlContent,
+			}),
+		});
 
-		const email = new brevo.SendSmtpEmail();
-		email.subject = subject;
-		email.htmlContent = htmlContent;
-		email.sender = {
-			email: senderEmail,
-			name: senderName,
-		};
-		email.to = [{ email: to }];
-
-		await apiInstance.sendTransacEmail(email);
+		if (!response.ok) {
+			const errorText = await response.text();
+			console.error("Failed to send email via Brevo:", errorText);
+		}
 	} catch (error) {
 		console.error("Failed to send email via Brevo:", error);
 	}

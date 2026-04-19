@@ -3,8 +3,8 @@ import bcrypt from "bcryptjs";
 import mongoose from "mongoose";
 import { Admin } from "./models/admin.model";
 
-const ADMIN_EMAIL = "admin@viveksfarm.com";
-const ADMIN_PASSWORD = "ChangeMe123!";
+const ADMIN_EMAIL = "vivekanandagodi@gmail.com";
+const ADMIN_PASSWORD = "Vivek.734@farm";
 
 const seedAdmin = async () => {
 	const mongoUri = process.env.MONGODB_URI;

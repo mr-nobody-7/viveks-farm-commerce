@@ -39,4 +39,16 @@ app.get("/health", (_req, res) => {
 	});
 });
 
+app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
+	console.error(error);
+
+	const message =
+		error instanceof Error ? error.message : "Internal server error";
+
+	res.status(500).json({
+		success: false,
+		message,
+	});
+});
+
 export default app;

@@ -1,5 +1,32 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+const requestJson = async <T>(
+	path: string,
+	init?: RequestInit,
+): Promise<T> => {
+	if (!API_URL) {
+		throw new Error("NEXT_PUBLIC_API_URL is not configured");
+	}
+
+	let response: Response;
+
+	try {
+		response = await fetch(`${API_URL}${path}`, init);
+	} catch (error) {
+		const message =
+			error instanceof Error ? error.message : "Unknown network error";
+		throw new Error(`Network error calling ${path}: ${message}`);
+	}
+
+	if (!response.ok) {
+		const text = await response.text();
+		const details = text || response.statusText || "No response body";
+		throw new Error(`API ${path} failed (${response.status}): ${details}`);
+	}
+
+	return response.json() as Promise<T>;
+};
+
 export interface Category {
 	_id: string;
 	name: string;
@@ -31,54 +58,42 @@ export interface Product {
 export const api = {
 	// Get all products
 	async getProducts(): Promise<Product[]> {
-		const res = await fetch(`${API_URL}/api/products`);
-		if (!res.ok) throw new Error("Failed to fetch products");
-		return res.json();
+		return requestJson<Product[]>("/api/products");
 	},
 
 	// Get single product by slug
 	async getProductBySlug(slug: string): Promise<Product> {
-		const res = await fetch(`${API_URL}/api/products/${slug}`);
-		if (!res.ok) throw new Error("Product not found");
-		return res.json();
+		return requestJson<Product>(`/api/products/${slug}`);
 	},
 
 	// Get all categories
 	async getCategories(): Promise<Category[]> {
-		const res = await fetch(`${API_URL}/api/categories`);
-		if (!res.ok) throw new Error("Failed to fetch categories");
-		return res.json();
+		return requestJson<Category[]>("/api/categories");
 	},
 
 	// Get products by category slug
 	async getProductsByCategory(categorySlug: string): Promise<Product[]> {
-		const res = await fetch(`${API_URL}/api/categories/${categorySlug}/products`);
-		if (!res.ok) throw new Error("Failed to fetch products");
-		return res.json();
+		return requestJson<Product[]>(`/api/categories/${categorySlug}/products`);
 	},
 
 	// Auth endpoints
 	async requestOTP(mobile: string): Promise<{ message: string; devOtp?: string }> {
-		const res = await fetch(`${API_URL}/api/auth/request-otp`, {
+		return requestJson<{ message: string; devOtp?: string }>("/api/auth/request-otp", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			body: JSON.stringify({ mobile }),
 		});
-		if (!res.ok) throw new Error("Failed to request OTP");
-		return res.json();
 	},
 
 	async verifyOTP(
 		mobile: string,
 		otp: string,
 	): Promise<{ message: string; user: any }> {
-		const res = await fetch(`${API_URL}/api/auth/verify-otp`, {
+		return requestJson<{ message: string; user: any }>("/api/auth/verify-otp", {
 			method: "POST",
 			headers: { "Content-Type": "application/json" },
 			credentials: "include",
 			body: JSON.stringify({ mobile, otp }),
 		});
-		if (!res.ok) throw new Error("Invalid OTP");
-		return res.json();
 	},
 };
