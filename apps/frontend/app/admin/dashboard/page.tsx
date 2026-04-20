@@ -37,6 +37,10 @@ interface AnalyticsResponse {
 	monthly: Array<{ label: string; revenue: number; orders: number }>;
 }
 
+interface AdminSettings {
+	allowCOD: boolean;
+}
+
 const revenueConfig = {
 	revenue: { label: "Revenue", color: "hsl(142, 76%, 36%)" },
 	orders: { label: "Orders", color: "hsl(210, 90%, 50%)" },
@@ -53,6 +57,8 @@ export default function AdminDashboardPage() {
 	const [loading, setLoading] = useState(true);
 	const [error, setError] = useState("");
 	const [analytics, setAnalytics] = useState<AnalyticsResponse | null>(null);
+	const [settings, setSettings] = useState<AdminSettings | null>(null);
+	const [settingsUpdating, setSettingsUpdating] = useState(false);
 	const router = useRouter();
 
 	useEffect(() => {
@@ -70,9 +76,12 @@ export default function AdminDashboardPage() {
 					throw new Error("Failed to fetch metrics");
 				}
 
-				const [metricsData, analyticsRes] = await Promise.all([
+				const [metricsData, analyticsRes, settingsRes] = await Promise.all([
 					res.json(),
 					fetch(`${API_URL}/api/admin/analytics`, {
+						credentials: "include",
+					}),
+					fetch(`${API_URL}/api/admin/settings`, {
 						credentials: "include",
 					}),
 				]);
@@ -83,6 +92,11 @@ export default function AdminDashboardPage() {
 					const analyticsData = await analyticsRes.json();
 					setAnalytics(analyticsData);
 				}
+
+				if (settingsRes.ok) {
+					const settingsData = (await settingsRes.json()) as AdminSettings;
+					setSettings(settingsData);
+				}
 			} catch (err) {
 				setError("Failed to load dashboard metrics");
 			} finally {
@@ -92,6 +106,34 @@ export default function AdminDashboardPage() {
 
 		fetchMetrics();
 	}, [router]);
+
+	const handleToggleCOD = async () => {
+		if (!settings) {
+			return;
+		}
+
+		setSettingsUpdating(true);
+
+		try {
+			const res = await fetch(`${API_URL}/api/admin/settings`, {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				credentials: "include",
+				body: JSON.stringify({ allowCOD: !settings.allowCOD }),
+			});
+
+			if (!res.ok) {
+				throw new Error("Failed to update COD setting");
+			}
+
+			const updated = (await res.json()) as AdminSettings;
+			setSettings({ allowCOD: updated.allowCOD });
+		} catch {
+			setError("Failed to update COD setting");
+		} finally {
+			setSettingsUpdating(false);
+		}
+	};
 
 	if (loading) {
 		return (
@@ -117,6 +159,31 @@ export default function AdminDashboardPage() {
 	return (
 		<div className="space-y-6">
 			<h1 className="text-3xl font-bold">Dashboard</h1>
+
+			<div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+				<div>
+					<p className="text-sm font-medium text-gray-600">Cash on Delivery</p>
+					<p className="text-sm text-gray-500">
+						Current status: {settings?.allowCOD ? "Enabled" : "Disabled"}
+					</p>
+				</div>
+				<button
+					type="button"
+					onClick={handleToggleCOD}
+					disabled={!settings || settingsUpdating}
+					className={`px-4 py-2 rounded-md text-sm font-medium ${
+						settings?.allowCOD
+							? "bg-red-100 text-red-700"
+							: "bg-green-100 text-green-700"
+					}`}
+				>
+					{settingsUpdating
+						? "Updating..."
+						: settings?.allowCOD
+							? "Disable COD"
+							: "Enable COD"}
+				</button>
+			</div>
 
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
 				{/* Total Orders Card */}

@@ -15,7 +15,6 @@ import { Loader2 } from "lucide-react";
 
 const DELIVERY_CHARGE = 49;
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
-const ENABLE_COD = process.env.NEXT_PUBLIC_ENABLE_COD === "true";
 
 type CouponPricing = {
   subtotalAmount: number;
@@ -42,6 +41,7 @@ const Checkout = () => {
   const [couponLoading, setCouponLoading] = useState(false);
   const [couponMessage, setCouponMessage] = useState("");
   const [appliedPricing, setAppliedPricing] = useState<CouponPricing | null>(null);
+  const [allowCOD, setAllowCOD] = useState(false);
 
   useEffect(() => {
     if (!user) {
@@ -53,6 +53,31 @@ const Checkout = () => {
     setAppliedPricing(null);
     setCouponMessage("");
   }, [items]);
+
+  useEffect(() => {
+    const fetchCheckoutSettings = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/settings`);
+        if (!response.ok) {
+          setAllowCOD(false);
+          return;
+        }
+
+        const data = (await response.json()) as { allowCOD?: boolean };
+        setAllowCOD(data.allowCOD === true);
+      } catch {
+        setAllowCOD(false);
+      }
+    };
+
+    fetchCheckoutSettings();
+  }, []);
+
+  useEffect(() => {
+    if (!allowCOD && payment === "COD") {
+      setPayment("ONLINE");
+    }
+  }, [allowCOD, payment]);
 
   if (items.length === 0) {
     return (
@@ -285,7 +310,7 @@ const Checkout = () => {
                     <RadioGroupItem value="ONLINE" id="online" />
                     <Label htmlFor="online">Online Payment (UPI/Card/NetBanking)</Label>
                   </div>
-                  {ENABLE_COD && (
+                  {allowCOD && (
                     <div className="flex items-center space-x-2">
                       <RadioGroupItem value="COD" id="cod" />
                       <Label htmlFor="cod">Cash on Delivery</Label>

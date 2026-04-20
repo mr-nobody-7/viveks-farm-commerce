@@ -92,7 +92,9 @@ const Shop = () => {
 								All
 							</Badge>
 						</Link>
-						{categories.map((cat) => (
+						{categories
+							.filter((cat) => Boolean(cat.slug?.trim()))
+							.map((cat) => (
 							<Link key={cat._id} href={`/shop/${cat.slug}`}>
 								<Badge variant="outline" className="cursor-pointer">
 									{cat.name}

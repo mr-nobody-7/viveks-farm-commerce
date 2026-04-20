@@ -77,7 +77,7 @@ export default function Home() {
 								<Link href="/shop">Shop Now</Link>
 							</Button>
 							<Button size="lg" variant="outline" asChild>
-								<Link href="/our-story">Our Story</Link>
+								<Link href="/about-us">Our Story</Link>
 							</Button>
 						</div>
 					</div>

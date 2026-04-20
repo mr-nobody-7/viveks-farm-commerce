@@ -22,11 +22,12 @@ interface ShopByCategoryProps {
 
 export default function ShopByCategory({ params }: ShopByCategoryProps) {
 	const { category } = use(params);
+  const normalizedCategory = category.toLowerCase();
 	const [sort, setSort] = useState<SortOption>("default");
 
 	const { data: products = [], isLoading: productsLoading } = useQuery({
-		queryKey: ["products", "category", category],
-		queryFn: () => api.getProductsByCategory(category),
+    queryKey: ["products", "category", normalizedCategory],
+    queryFn: () => api.getProductsByCategory(normalizedCategory),
 	});
 
 	const { data: categories = [], isLoading: categoriesLoading } = useQuery({
@@ -44,7 +45,9 @@ export default function ShopByCategory({ params }: ShopByCategoryProps) {
 		return list;
 	}, [products, sort]);
 
-	const currentCategory = categories.find((c) => c.slug === category);
+  const currentCategory = categories.find(
+    (c) => c.slug.toLowerCase() === normalizedCategory,
+  );
 
 	if (productsLoading || categoriesLoading) {
 		return (
@@ -86,16 +89,22 @@ export default function ShopByCategory({ params }: ShopByCategoryProps) {
                 All
               </Badge>
             </Link>
-						{categories.map((cat) => (
+            {categories
+              .filter((cat) => Boolean(cat.slug?.trim()))
+              .map((cat) => (
 							<Link key={cat._id} href={`/shop/${cat.slug}`}>
 								<Badge
-									variant={category === cat.slug ? "default" : "outline"}
+                  variant={
+                    normalizedCategory === cat.slug.toLowerCase()
+                      ? "default"
+                      : "outline"
+                  }
 									className="cursor-pointer"
 								>
 									{cat.name}
 								</Badge>
 							</Link>
-						))}
+            ))}
           </div>
         </aside>
 

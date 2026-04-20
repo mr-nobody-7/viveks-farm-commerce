@@ -33,7 +33,9 @@ Why this matters:
 - Connect GitHub repo on vercel.com
 - Set Root Directory to: apps/frontend
 - Add env variable: NEXT_PUBLIC_API_URL=https://your-railway-url.up.railway.app
-- Add env variable: NEXT_PUBLIC_ENABLE_COD=true
+
+COD configuration:
+- COD is controlled from Admin Dashboard settings after deploy (not from env)
 
 ## Database (MongoDB Atlas)
 - Create free cluster at cloud.mongodb.com
