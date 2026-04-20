@@ -5,6 +5,7 @@ import multer from "multer";
 import { sendEmail } from "../lib/mailer";
 import { requireAdmin } from "../middleware/admin.middleware";
 import { Admin } from "../models/admin.model";
+import { getOrCreateAppConfig } from "../models/app-config.model";
 import { Category } from "../models/category.model";
 import { Coupon } from "../models/coupon.model";
 import { Order } from "../models/order.model";
@@ -157,6 +158,31 @@ router.get("/admin/analytics", requireAdmin, async (_req, res) => {
 		paymentSummary,
 		orderStatusSummary,
 		monthly,
+	});
+});
+
+router.get("/admin/settings", requireAdmin, async (_req, res) => {
+	const config = await getOrCreateAppConfig();
+
+	res.json({
+		allowCOD: config.allowCOD,
+	});
+});
+
+router.patch("/admin/settings", requireAdmin, async (req, res) => {
+	const { allowCOD } = req.body as { allowCOD?: unknown };
+
+	if (typeof allowCOD !== "boolean") {
+		return res.status(400).json({ message: "allowCOD must be a boolean" });
+	}
+
+	const config = await getOrCreateAppConfig();
+	config.allowCOD = allowCOD;
+	await config.save();
+
+	res.json({
+		message: "Settings updated",
+		allowCOD: config.allowCOD,
 	});
 });
 

@@ -1,5 +1,6 @@
 import { Router } from "express";
 import { type AuthRequest, requireAuth } from "../middleware/auth.middleware";
+import { getOrCreateAppConfig } from "../models/app-config.model";
 import { Coupon, type ICoupon } from "../models/coupon.model";
 import { Order } from "../models/order.model";
 
@@ -187,7 +188,8 @@ router.post("/orders", requireAuth, async (req: AuthRequest, res) => {
 		return res.status(400).json({ message: "Cart is empty" });
 	}
 
-	const enableCOD = process.env.ENABLE_COD === "true";
+	const appConfig = await getOrCreateAppConfig();
+	const enableCOD = appConfig.allowCOD;
 
 	if (paymentMethod === "COD" && !enableCOD) {
 		return res.status(400).json({ message: "COD not allowed" });

@@ -11,6 +11,7 @@
 		"format": "biome format . --write",
 		"check": "biome check . --write",
 		"seed": "tsx src/seed/seed.ts",
+		"seed:reseed": "tsx src/seed/reseed.ts",
 		"seed:admin": "ts-node src/seed-admin.ts",
 		"seed:products": "ts-node src/seed-products.ts"
 	},

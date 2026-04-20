@@ -8,6 +8,7 @@ import contactRoutes from "./routes/contact.route";
 import orderRoutes from "./routes/order.route";
 import paymentRoutes from "./routes/payment.route";
 import productRoutes from "./routes/product.route";
+import settingsRoutes from "./routes/settings.route";
 import userRoutes from "./routes/user.route";
 
 const app = express();
@@ -23,6 +24,7 @@ app.use(
 app.use(express.json());
 app.use(cookieParser());
 app.use("/api", productRoutes);
+app.use("/api", settingsRoutes);
 app.use("/api", authRoutes);
 app.use("/api", orderRoutes);
 app.use("/api", paymentRoutes);
