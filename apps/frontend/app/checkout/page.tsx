@@ -8,10 +8,13 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { useCartStore } from "@/lib/stores/cart-store";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { Loader2 } from "lucide-react";
+import { INDIAN_STATES } from "@/lib/constants";
+import { toast } from "sonner";
 
 const DELIVERY_CHARGE = 49;
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -43,6 +46,7 @@ const Checkout = () => {
   const [couponMessage, setCouponMessage] = useState("");
   const [appliedPricing, setAppliedPricing] = useState<CouponPricing | null>(null);
   const [allowCOD, setAllowCOD] = useState(false);
+  const [selectedState, setSelectedState] = useState("");
 
   useEffect(() => {
     setAuthChecked(true);
@@ -54,6 +58,10 @@ const Checkout = () => {
   useEffect(() => {
     setAppliedPricing(null);
     setCouponMessage("");
+    if (appliedPricing) {
+      toast.info("Coupon removed (cart was updated)");
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [items]);
 
   useEffect(() => {
@@ -127,15 +135,18 @@ const Checkout = () => {
       if (!response.ok) {
         setAppliedPricing(null);
         setCouponMessage(data?.message || "Coupon could not be applied");
+        toast.error(data?.message || "Coupon could not be applied");
         return;
       }
 
       setAppliedPricing(data);
       setCouponCode(data.couponCode || couponCode.toUpperCase());
-      setCouponMessage(data.message || "Coupon applied");
+      toast.success(data.message || "Coupon applied!");
+      setCouponMessage("");
     } catch (_err) {
       setAppliedPricing(null);
       setCouponMessage("Failed to apply coupon. Try again.");
+      toast.error("Failed to apply coupon. Try again.");
     } finally {
       setCouponLoading(false);
     }
@@ -152,7 +163,7 @@ const Checkout = () => {
       phone: formData.get("phone") as string,
       addressLine: formData.get("address") as string,
       city: formData.get("city") as string,
-      state: formData.get("state") as string,
+      state: selectedState,
       pincode: formData.get("pincode") as string,
     };
 
@@ -267,7 +278,7 @@ const Checkout = () => {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Full Name</Label>
-                    <Input id="name" name="name" required placeholder="Your full name" />
+                    <Input id="name" name="name" required placeholder="Your full name" defaultValue={user?.name ?? ""} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="phone">Phone Number</Label>
@@ -278,6 +289,7 @@ const Checkout = () => {
                       required
                       placeholder="9876543210"
                       pattern="[0-9]{10}"
+                      defaultValue={user?.mobile ?? ""}
                     />
                   </div>
                 </div>
@@ -297,7 +309,16 @@ const Checkout = () => {
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="state">State</Label>
-                    <Input id="state" name="state" required placeholder="State" />
+                    <Select value={selectedState} onValueChange={setSelectedState} required>
+                      <SelectTrigger id="state">
+                        <SelectValue placeholder="Select state" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {INDIAN_STATES.map((s) => (
+                          <SelectItem key={s} value={s}>{s}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="pincode">Pincode</Label>
@@ -356,7 +377,11 @@ const Checkout = () => {
                     onClick={handleApplyCoupon}
                     disabled={couponLoading || loading}
                   >
-                    {couponLoading ? "Applying..." : "Apply"}
+                    {couponLoading ? (
+                      <Loader2 className="h-4 w-4 animate-spin" />
+                    ) : (
+                      "Apply"
+                    )}
                   </Button>
                 </div>
                 {couponMessage && (
