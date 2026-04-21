@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
 	Dialog,
 	DialogContent,
@@ -15,6 +15,8 @@ import { api } from "@/lib/api";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { Loader2 } from "lucide-react";
 
+const RESEND_COOLDOWN = 30;
+
 interface LoginModalProps {
 	open: boolean;
 	onOpenChange: (open: boolean) => void;
@@ -27,22 +29,51 @@ export const LoginModal = ({ open, onOpenChange }: LoginModalProps) => {
 	const [step, setStep] = useState<"mobile" | "otp">("mobile");
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState("");
+	const [resendCountdown, setResendCountdown] = useState(0);
+	const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 	const setUser = useAuthStore((state) => state.setUser);
 
-	const handleRequestOTP = async (e: React.FormEvent) => {
-		e.preventDefault();
+	const startResendTimer = () => {
+		setResendCountdown(RESEND_COOLDOWN);
+		timerRef.current = setInterval(() => {
+			setResendCountdown((prev) => {
+				if (prev <= 1) {
+					clearInterval(timerRef.current!);
+					return 0;
+				}
+				return prev - 1;
+			});
+		}, 1000);
+	};
+
+	useEffect(() => {
+		return () => {
+			if (timerRef.current) clearInterval(timerRef.current);
+		};
+	}, []);
+
+	const sendOtp = async (mobileNumber: string) => {
 		setError("");
 		setLoading(true);
-
 		try {
-			const response = await api.requestOTP(mobile);
+			const response = await api.requestOTP(mobileNumber);
 			setDevOtp(response.devOtp ?? null);
 			setStep("otp");
-		} catch (err) {
+			startResendTimer();
+		} catch {
 			setError("Failed to send OTP. Please try again.");
 		} finally {
 			setLoading(false);
 		}
+	};
+
+	const handleRequestOTP = async (e: React.FormEvent) => {
+		e.preventDefault();
+		await sendOtp(mobile);
+	};
+
+	const handleResendOTP = async () => {
+		await sendOtp(mobile);
 	};
 
 	const handleVerifyOTP = async (e: React.FormEvent) => {
@@ -54,12 +85,12 @@ export const LoginModal = ({ open, onOpenChange }: LoginModalProps) => {
 			const response = await api.verifyOTP(mobile, otp);
 			setUser(response.user);
 			onOpenChange(false);
-			// Reset form
 			setMobile("");
 			setOtp("");
 			setDevOtp(null);
 			setStep("mobile");
-		} catch (err) {
+			setResendCountdown(0);
+		} catch {
 			setError("Invalid OTP. Please try again.");
 		} finally {
 			setLoading(false);
@@ -71,6 +102,8 @@ export const LoginModal = ({ open, onOpenChange }: LoginModalProps) => {
 		setOtp("");
 		setDevOtp(null);
 		setError("");
+		setResendCountdown(0);
+		if (timerRef.current) clearInterval(timerRef.current);
 	};
 
 	return (
@@ -83,7 +116,7 @@ export const LoginModal = ({ open, onOpenChange }: LoginModalProps) => {
 					<DialogDescription>
 						{step === "mobile"
 							? "Enter your mobile number to receive an OTP"
-							: `We've sent a 6-digit OTP to ${mobile}`}
+							: `We've sent a 6-digit OTP to +91 ${mobile}`}
 					</DialogDescription>
 				</DialogHeader>
 
@@ -94,7 +127,7 @@ export const LoginModal = ({ open, onOpenChange }: LoginModalProps) => {
 							<Input
 								id="mobile"
 								type="tel"
-								placeholder="+91 89850 46761"
+								placeholder="10-digit mobile number"
 								value={mobile}
 								onChange={(e) => setMobile(e.target.value)}
 								required
@@ -119,7 +152,7 @@ export const LoginModal = ({ open, onOpenChange }: LoginModalProps) => {
 					<form onSubmit={handleVerifyOTP} className="space-y-4">
 						{devOtp && (
 							<div className="rounded-md border border-amber-300 bg-amber-100 px-3 py-2 text-sm text-amber-900">
-								Demo OTP: {devOtp}
+								<span className="font-medium">Demo OTP:</span> {devOtp}
 							</div>
 						)}
 						<div className="space-y-2">
@@ -138,6 +171,24 @@ export const LoginModal = ({ open, onOpenChange }: LoginModalProps) => {
 							/>
 						</div>
 						{error && <p className="text-sm text-destructive">{error}</p>}
+						<div className="text-center">
+							{resendCountdown > 0 ? (
+								<p className="text-sm text-muted-foreground">
+									Resend OTP in {resendCountdown}s
+								</p>
+							) : (
+								<Button
+									type="button"
+									variant="link"
+									size="sm"
+									onClick={handleResendOTP}
+									disabled={loading}
+									className="h-auto p-0 text-sm"
+								>
+									Resend OTP
+								</Button>
+							)}
+						</div>
 						<div className="flex gap-2">
 							<Button
 								type="button"
