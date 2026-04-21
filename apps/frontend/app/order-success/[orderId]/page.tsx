@@ -5,6 +5,7 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckCircle, MessageCircle } from "lucide-react";
+import { WHATSAPP_NUMBER } from "@/lib/constants";
 
 interface OrderSuccessProps {
 	params: Promise<{ orderId: string }>;
@@ -32,7 +33,7 @@ export default function OrderSuccess({ params }: OrderSuccessProps) {
 			<div className="flex flex-col sm:flex-row gap-3 justify-center">
 				<Button asChild>
 					<a
-						href={`https://wa.me/919876543210?text=Hi!%20I%20just%20placed%20order%20${orderId}%20on%20Vivek's%20Farm.`}
+						href={`https://wa.me/${WHATSAPP_NUMBER}?text=Hi!%20I%20just%20placed%20order%20${orderId}%20on%20Vivek's%20Farm.`}
 						target="_blank"
 						rel="noopener noreferrer"
 					>

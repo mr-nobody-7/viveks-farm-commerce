@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { MessageCircle, Phone, MapPin } from "lucide-react";
 import { useState } from "react";
+import { WHATSAPP_NUMBER } from "@/lib/constants";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -152,7 +153,7 @@ const Contact = () => {
                 <div>
                   <h4 className="font-semibold">WhatsApp</h4>
                   <a
-                    href="https://wa.me/919876543210"
+                    href={`https://wa.me/${WHATSAPP_NUMBER}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="text-sm text-primary hover:underline"
