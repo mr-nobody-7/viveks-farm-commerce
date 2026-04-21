@@ -213,17 +213,23 @@ const Checkout = () => {
         },
         handler: async (paymentResult: unknown) => {
           try {
-            await fetch(`${API_URL}/api/payments/verify`, {
+            const verifyResponse = await fetch(`${API_URL}/api/payments/verify`, {
               method: "POST",
               credentials: "include",
               headers: { "Content-Type": "application/json" },
               body: JSON.stringify(paymentResult),
             });
 
+            if (!verifyResponse.ok) {
+              setError("Payment verification failed. Please contact support with your order ID.");
+              setLoading(false);
+              return;
+            }
+
             clearCart();
             router.push(`/order-success/${orderId}`);
           } catch (_err) {
-            setError("Payment verification failed");
+            setError("Payment verification failed. Please try again.");
             setLoading(false);
           }
         },
