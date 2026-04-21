@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { AuthHydrator } from "@/components/AuthHydrator";
 import { Geist, Geist_Mono } from "next/font/google";
+import { Toaster } from "sonner";
 import "./globals.css";
 import Layout from "@/components/Layout";
 import { CartStoreProvider } from "@/providers/cart-store-provider";
@@ -58,8 +59,7 @@ export default function RootLayout({
         <ReactQueryProvider>
           <CartStoreProvider>
 						<AuthHydrator />
-            <Layout>{children}</Layout>
-          </CartStoreProvider>
+            <Layout>{children}</Layout>					<Toaster richColors position="top-center" />          </CartStoreProvider>
         </ReactQueryProvider>
       </body>
     </html>

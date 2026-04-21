@@ -12,6 +12,7 @@ import { useCartStore } from "@/lib/stores/cart-store";
 import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
+import { toast } from "sonner";
 
 interface ProductDetailProps {
 	params: Promise<{ product_id: string }>;
@@ -86,11 +87,24 @@ export default function ProductDetail({ params }: ProductDetailProps) {
 			price: selectedVariant.price,
 			quantity: 1,
 		});
+		toast.success(`${product.name} added to cart`);
 	};
 
 	const handleBuyNow = () => {
-		handleAddToCart();
+		addItem({
+			productId: product._id,
+			slug: product.slug,
+			name: product.name,
+			image: product.images[0] || "/placeholder.svg",
+			variantLabel: selectedVariant.label,
+			price: selectedVariant.price,
+			quantity: 1,
+		});
 		router.push("/cart");
+	};
+
+	const handleBack = () => {
+		router.push("/shop");
 	};
 
 	const discount = selectedVariant.originalPrice
@@ -106,7 +120,7 @@ export default function ProductDetail({ params }: ProductDetailProps) {
 			{/* Breadcrumb */}
 			<button
 				type="button"
-				onClick={() => router.back()}
+				onClick={handleBack}
 				className="flex items-center gap-1 text-sm text-muted-foreground hover:text-primary mb-6"
 			>
 				<ArrowLeft className="h-4 w-4" /> Back

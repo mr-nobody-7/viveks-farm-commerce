@@ -8,6 +8,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { MessageCircle, Phone, MapPin } from "lucide-react";
 import { useState } from "react";
 import { WHATSAPP_NUMBER } from "@/lib/constants";
+import { toast } from "sonner";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -17,14 +18,10 @@ const Contact = () => {
   const [mobile, setMobile] = useState("");
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
-  const [successMessage, setSuccessMessage] = useState("");
-  const [errorMessage, setErrorMessage] = useState("");
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    setSuccessMessage("");
-    setErrorMessage("");
 
     try {
       const response = await fetch(`${API_URL}/api/contact`, {
@@ -36,19 +33,17 @@ const Contact = () => {
       const data = await response.json();
 
       if (!response.ok) {
-        setErrorMessage(
-          data.message || "Something went wrong. Please try again.",
-        );
+        toast.error(data.message || "Something went wrong. Please try again.");
         return;
       }
 
-      setSuccessMessage(data.message || "We'll get back to you soon!");
+      toast.success(data.message || "We'll get back to you soon!");
       setName("");
       setEmail("");
       setMobile("");
       setMessage("");
     } catch {
-      setErrorMessage("Something went wrong. Please try again.");
+      toast.error("Something went wrong. Please try again.");
     } finally {
       setLoading(false);
     }

@@ -7,6 +7,7 @@ import { ShoppingCart } from "lucide-react";
 import type { Product } from "@/lib/api";
 import Link from "next/link";
 import { useCartStore } from "@/lib/stores/cart-store";
+import { toast } from "sonner";
 
 interface ProductCardProps {
 	product: Product;
@@ -33,6 +34,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 			price: variant.price,
 			quantity: 1,
 		});
+		toast.success(`${product.name} added to cart`);
 	};
 
 	return (

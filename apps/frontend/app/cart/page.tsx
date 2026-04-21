@@ -6,6 +6,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
 import { useCartStore } from "@/lib/stores/cart-store";
+import { toast } from "sonner";
 
 const DELIVERY_CHARGE = 49;
 
@@ -13,6 +14,11 @@ const Cart = () => {
 	const items = useCartStore((state) => state.items);
 	const updateQuantity = useCartStore((state) => state.updateQuantity);
 	const removeItem = useCartStore((state) => state.removeItem);
+
+	const handleRemove = (productId: string, variantLabel: string, name: string) => {
+		removeItem(productId, variantLabel);
+		toast.success(`${name} removed from cart`);
+	};
 
 	// Derive subtotal from items
 	const subtotal = items.reduce(
@@ -66,7 +72,10 @@ const Cart = () => {
 										variant="ghost"
 										size="icon"
 										className="h-8 w-8 text-destructive"
-										onClick={() => removeItem(item.productId, item.variantLabel)}
+										onClick={() => {
+										removeItem(item.productId, item.variantLabel);
+										toast.success(`${item.name} removed from cart`);
+									}}
 									>
 										<Trash2 className="h-4 w-4" />
 									</Button>
