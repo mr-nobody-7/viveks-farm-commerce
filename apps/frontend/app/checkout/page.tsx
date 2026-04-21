@@ -34,6 +34,7 @@ const Checkout = () => {
     [items],
   );
   const router = useRouter();
+  const [authChecked, setAuthChecked] = useState(false);
   const [payment, setPayment] = useState("ONLINE");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
@@ -44,6 +45,7 @@ const Checkout = () => {
   const [allowCOD, setAllowCOD] = useState(false);
 
   useEffect(() => {
+    setAuthChecked(true);
     if (!user) {
       router.push("/");
     }
@@ -78,6 +80,10 @@ const Checkout = () => {
       setPayment("ONLINE");
     }
   }, [allowCOD, payment]);
+
+  if (!authChecked || !user) {
+    return null;
+  }
 
   if (items.length === 0) {
     return (
