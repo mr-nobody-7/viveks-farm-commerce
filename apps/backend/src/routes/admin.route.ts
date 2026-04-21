@@ -166,23 +166,38 @@ router.get("/admin/settings", requireAdmin, async (_req, res) => {
 
 	res.json({
 		allowCOD: config.allowCOD,
+		deliveryCharge: config.deliveryCharge,
 	});
 });
 
 router.patch("/admin/settings", requireAdmin, async (req, res) => {
-	const { allowCOD } = req.body as { allowCOD?: unknown };
+	const { allowCOD, deliveryCharge } = req.body as {
+		allowCOD?: unknown;
+		deliveryCharge?: unknown;
+	};
 
-	if (typeof allowCOD !== "boolean") {
+	if (allowCOD !== undefined && typeof allowCOD !== "boolean") {
 		return res.status(400).json({ message: "allowCOD must be a boolean" });
 	}
 
+	if (
+		deliveryCharge !== undefined &&
+		(typeof deliveryCharge !== "number" || deliveryCharge < 0)
+	) {
+		return res
+			.status(400)
+			.json({ message: "deliveryCharge must be a non-negative number" });
+	}
+
 	const config = await getOrCreateAppConfig();
-	config.allowCOD = allowCOD;
+	if (allowCOD !== undefined) config.allowCOD = allowCOD;
+	if (deliveryCharge !== undefined) config.deliveryCharge = deliveryCharge;
 	await config.save();
 
 	res.json({
 		message: "Settings updated",
 		allowCOD: config.allowCOD,
+		deliveryCharge: config.deliveryCharge,
 	});
 });
 

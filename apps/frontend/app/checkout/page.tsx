@@ -16,7 +16,6 @@ import { Loader2 } from "lucide-react";
 import { INDIAN_STATES } from "@/lib/constants";
 import { toast } from "sonner";
 
-const DELIVERY_CHARGE = 49;
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 type CouponPricing = {
@@ -47,6 +46,7 @@ const Checkout = () => {
   const [appliedPricing, setAppliedPricing] = useState<CouponPricing | null>(null);
   const [allowCOD, setAllowCOD] = useState(false);
   const [selectedState, setSelectedState] = useState("");
+  const [deliveryCharge, setDeliveryCharge] = useState(49);
 
   useEffect(() => {
     setAuthChecked(true);
@@ -73,8 +73,9 @@ const Checkout = () => {
           return;
         }
 
-        const data = (await response.json()) as { allowCOD?: boolean };
+        const data = (await response.json()) as { allowCOD?: boolean; deliveryCharge?: number };
         setAllowCOD(data.allowCOD === true);
+        if (typeof data.deliveryCharge === "number") setDeliveryCharge(data.deliveryCharge);
       } catch {
         setAllowCOD(false);
       }
@@ -105,7 +106,7 @@ const Checkout = () => {
   }
 
   const discountAmount = appliedPricing?.discountAmount || 0;
-  const total = subtotal + DELIVERY_CHARGE - discountAmount;
+  const total = subtotal + deliveryCharge - discountAmount;
 
   const handleApplyCoupon = async () => {
     setError("");
@@ -415,7 +416,7 @@ const Checkout = () => {
                 </div>
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Delivery</span>
-                  <span>₹{DELIVERY_CHARGE}</span>
+                  <span>₹{deliveryCharge}</span>
                 </div>
                 {discountAmount > 0 && (
                   <div className="flex justify-between text-green-600">

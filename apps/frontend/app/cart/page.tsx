@@ -7,13 +7,25 @@ import { Separator } from "@/components/ui/separator";
 import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
 import { useCartStore } from "@/lib/stores/cart-store";
 import { toast } from "sonner";
+import { useEffect, useState } from "react";
 
-const DELIVERY_CHARGE = 49;
+const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 const Cart = () => {
 	const items = useCartStore((state) => state.items);
 	const updateQuantity = useCartStore((state) => state.updateQuantity);
 	const removeItem = useCartStore((state) => state.removeItem);
+	const [deliveryCharge, setDeliveryCharge] = useState(49);
+
+	useEffect(() => {
+		if (!API_URL) return;
+		fetch(`${API_URL}/api/settings`)
+			.then((r) => r.json())
+			.then((d) => {
+				if (typeof d.deliveryCharge === "number") setDeliveryCharge(d.deliveryCharge);
+			})
+			.catch(() => {});
+	}, []);
 
 	const handleRemove = (productId: string, variantLabel: string, name: string) => {
 		removeItem(productId, variantLabel);
@@ -41,7 +53,7 @@ const Cart = () => {
 		);
 	}
 
-	const total = subtotal + DELIVERY_CHARGE;
+	const total = subtotal + deliveryCharge;
 
 	return (
 		<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
@@ -129,7 +141,7 @@ const Cart = () => {
 							</div>
 							<div className="flex justify-between">
 								<span className="text-muted-foreground">Delivery</span>
-								<span>₹{DELIVERY_CHARGE}</span>
+								<span>₹{deliveryCharge}</span>
 							</div>
 						</div>
 						<Separator />

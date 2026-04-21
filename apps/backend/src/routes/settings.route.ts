@@ -8,6 +8,7 @@ router.get("/settings", async (_req, res) => {
 
 	res.json({
 		allowCOD: config.allowCOD,
+		deliveryCharge: config.deliveryCharge,
 	});
 });
 
