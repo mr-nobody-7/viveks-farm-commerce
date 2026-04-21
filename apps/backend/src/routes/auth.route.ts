@@ -35,13 +35,9 @@ router.post("/auth/request-otp", async (req, res) => {
 		expiresAt: new Date(Date.now() + 5 * 60 * 1000),
 	});
 
-	console.log(`OTP for ${mobile}: ${otp}`); // Replace with SMS later
+	console.log(`OTP for ${mobile}: ${otp}`);
 
-	if (process.env.NODE_ENV !== "production") {
-		return res.json({ message: "OTP sent", devOtp: otp });
-	}
-
-	res.json({ message: "OTP sent" });
+	res.json({ message: "OTP sent", devOtp: otp });
 });
 
 router.post("/auth/verify-otp", async (req, res) => {
