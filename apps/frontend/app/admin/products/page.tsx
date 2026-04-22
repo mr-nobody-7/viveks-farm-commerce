@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { AdminTableSkeleton } from "@/components/Skeletons";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -273,11 +274,7 @@ export default function AdminProductsPage() {
 	};
 
 	if (loading) {
-		return (
-			<div className="flex items-center justify-center min-h-[400px]">
-				<p className="text-gray-500">Loading products...</p>
-			</div>
-		);
+		return <AdminTableSkeleton rows={6} cols={5} />;
 	}
 
 	return (
@@ -311,6 +308,13 @@ export default function AdminProductsPage() {
 							</tr>
 						</thead>
 						<tbody className="bg-white divide-y divide-gray-200">
+							{products.length === 0 && (
+								<tr>
+									<td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+										No products yet. Click "Add Product" to create one.
+									</td>
+								</tr>
+							)}
 							{products.map((product) => (
 								<tr key={product._id}>
 									<td className="px-6 py-4 whitespace-nowrap">

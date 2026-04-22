@@ -1,6 +1,7 @@
 "use client";
 
 import { Button } from "@/components/ui/button";
+import { AdminTableSkeleton } from "@/components/Skeletons";
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 
@@ -115,11 +116,7 @@ export default function AdminCategoriesPage() {
 	};
 
 	if (loading) {
-		return (
-			<div className="flex items-center justify-center min-h-[400px]">
-				<p className="text-gray-500">Loading categories...</p>
-			</div>
-		);
+		return <AdminTableSkeleton rows={4} cols={5} />;
 	}
 
 	return (
@@ -153,6 +150,13 @@ export default function AdminCategoriesPage() {
 						</tr>
 					</thead>
 					<tbody className="bg-white divide-y divide-gray-200">
+						{categories.length === 0 && (
+							<tr>
+								<td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+									No categories yet. Click "Add Category" to create one.
+								</td>
+							</tr>
+						)}
 						{categories.map((category) => (
 							<tr key={category._id}>
 								<td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">

@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { AdminTableSkeleton } from "@/components/Skeletons";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -181,11 +182,7 @@ export default function AdminCouponsPage() {
 	);
 
 	if (loading) {
-		return (
-			<div className="flex items-center justify-center min-h-100">
-				<p className="text-gray-500">Loading coupons...</p>
-			</div>
-		);
+		return <AdminTableSkeleton rows={5} cols={6} />;
 	}
 
 	return (
@@ -226,6 +223,13 @@ export default function AdminCouponsPage() {
 							</tr>
 						</thead>
 						<tbody className="bg-white divide-y divide-gray-200">
+							{coupons.length === 0 && (
+								<tr>
+									<td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+										No coupons yet. Click "Create Coupon" to add one.
+									</td>
+								</tr>
+							)}
 							{coupons.map((coupon) => (
 								<tr key={coupon._id}>
 									<td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">

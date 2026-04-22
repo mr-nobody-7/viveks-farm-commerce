@@ -151,8 +151,30 @@ export default function AdminOrderDetailPage({ params }: OrderDetailProps) {
 
 	if (loading) {
 		return (
-			<div className="flex items-center justify-center min-h-[400px]">
-				<p className="text-gray-500">Loading order...</p>
+			<div className="space-y-6 animate-pulse">
+				<div className="h-4 bg-gray-200 rounded w-24" />
+				<div className="h-9 bg-gray-200 rounded w-56" />
+				<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+					<div className="lg:col-span-2 space-y-6">
+						<div className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
+							<div className="h-5 bg-gray-200 rounded w-40" />
+							<div className="grid grid-cols-2 gap-4">
+								{Array.from({ length: 6 }).map((_, i) => (
+									<div key={i} className="space-y-1">
+										<div className="h-3 bg-gray-200 rounded w-20" />
+										<div className="h-4 bg-gray-200 rounded w-32" />
+									</div>
+								))}
+							</div>
+						</div>
+						<div className="bg-white rounded-lg border border-gray-200 p-6 space-y-3">
+							<div className="h-5 bg-gray-200 rounded w-32" />
+							<div className="h-4 bg-gray-200 rounded w-48" />
+							<div className="h-4 bg-gray-200 rounded w-36" />
+						</div>
+					</div>
+					<div className="bg-white rounded-lg border border-gray-200 p-6 h-48" />
+				</div>
 			</div>
 		);
 	}
