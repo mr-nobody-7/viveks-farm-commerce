@@ -37,7 +37,7 @@ interface Order {
 	items: OrderItem[];
 	totalAmount: number;
 	address: Address;
-	status: "PENDING" | "PLACED" | "PACKED" | "SHIPPED" | "DELIVERED";
+	status: "PENDING" | "PLACED" | "PACKED" | "SHIPPED" | "DELIVERED" | "CANCELLED";
 	paymentMethod: "ONLINE" | "COD";
 	paymentStatus: "PENDING" | "PAID" | "FAILED";
 	razorpayOrderId?: string;
@@ -56,12 +56,7 @@ const orderStatusColors = {
 	PACKED: "bg-orange-100 text-orange-800",
 	SHIPPED: "bg-purple-100 text-purple-800",
 	DELIVERED: "bg-green-100 text-green-800",
-};
-
-const paymentStatusColors = {
-	PENDING: "bg-yellow-100 text-yellow-800",
-	PAID: "bg-green-100 text-green-800",
-	FAILED: "bg-red-100 text-red-800",
+	CANCELLED: "bg-red-100 text-red-800",
 };
 
 export default function AdminOrderDetailPage({ params }: OrderDetailProps) {
@@ -365,13 +360,19 @@ export default function AdminOrderDetailPage({ params }: OrderDetailProps) {
 									id="status"
 									value={selectedStatus}
 									onChange={(e) => setSelectedStatus(e.target.value)}
-									className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
-								>
-									<option value="PLACED">PLACED</option>
-									<option value="PACKED">PACKED</option>
-									<option value="SHIPPED">SHIPPED</option>
-									<option value="DELIVERED">DELIVERED</option>
-								</select>
+								disabled={order.status === "CANCELLED" || order.status === "DELIVERED"}
+								className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+							>
+								<option value="PLACED">PLACED</option>
+								<option value="PACKED">PACKED</option>
+								<option value="SHIPPED">SHIPPED</option>
+								<option value="DELIVERED">DELIVERED</option>
+							</select>
+							{(order.status === "CANCELLED" || order.status === "DELIVERED") && (
+								<p className="text-xs text-gray-500 mt-1">
+									Status cannot be changed for {order.status.toLowerCase()} orders.
+								</p>
+							)}
 							</div>
 
 							{order.paymentStatus !== "PAID" &&

@@ -25,7 +25,7 @@ interface Order {
 	discountAmount: number;
 	couponCode?: string;
 	totalAmount: number;
-	status: "PENDING" | "PLACED" | "PACKED" | "SHIPPED" | "DELIVERED";
+	status: "PENDING" | "PLACED" | "PACKED" | "SHIPPED" | "DELIVERED" | "CANCELLED";
 	paymentMethod: "ONLINE" | "COD";
 	paymentStatus: "PENDING" | "PAID" | "FAILED";
 	createdAt: string;
@@ -38,12 +38,7 @@ const orderStatusColors = {
 	PACKED: "bg-orange-100 text-orange-800",
 	SHIPPED: "bg-purple-100 text-purple-800",
 	DELIVERED: "bg-green-100 text-green-800",
-};
-
-const paymentStatusColors = {
-	PENDING: "bg-yellow-100 text-yellow-800",
-	PAID: "bg-green-100 text-green-800",
-	FAILED: "bg-red-100 text-red-800",
+	CANCELLED: "bg-red-100 text-red-800",
 };
 
 export default function AdminOrdersPage() {
@@ -54,7 +49,7 @@ export default function AdminOrdersPage() {
 	>("ALL");
 	const [searchQuery, setSearchQuery] = useState("");
 	const [statusFilter, setStatusFilter] = useState<
-		"ALL" | "PENDING" | "PLACED" | "PACKED" | "SHIPPED" | "DELIVERED"
+		"ALL" | "PENDING" | "PLACED" | "PACKED" | "SHIPPED" | "DELIVERED" | "CANCELLED"
 	>("ALL");
 	const [paymentMethodFilter, setPaymentMethodFilter] = useState<
 		"ALL" | "ONLINE" | "COD"
@@ -317,7 +312,8 @@ export default function AdminOrdersPage() {
 								| "PLACED"
 								| "PACKED"
 								| "SHIPPED"
-								| "DELIVERED",
+								| "DELIVERED"
+								| "CANCELLED",
 						)
 					}
 					className="px-3 py-2 border border-gray-300 rounded-md text-sm"
@@ -328,6 +324,7 @@ export default function AdminOrdersPage() {
 					<option value="PACKED">PACKED</option>
 					<option value="SHIPPED">SHIPPED</option>
 					<option value="DELIVERED">DELIVERED</option>
+					<option value="CANCELLED">CANCELLED</option>
 				</select>
 				<select
 					value={paymentMethodFilter}
@@ -538,14 +535,15 @@ export default function AdminOrdersPage() {
 														e.target.value as Order["status"],
 													)
 												}
-												disabled={updatingOrderId === order._id}
-												className="mr-3 px-2 py-1 border border-gray-300 rounded text-xs"
-											>
-												<option value="PENDING">PENDING</option>
-												<option value="PLACED">PLACED</option>
-												<option value="PACKED">PACKED</option>
-												<option value="SHIPPED">SHIPPED</option>
-												<option value="DELIVERED">DELIVERED</option>
+											disabled={updatingOrderId === order._id || order.status === "CANCELLED" || order.status === "DELIVERED"}
+											className="mr-3 px-2 py-1 border border-gray-300 rounded text-xs disabled:bg-gray-100 disabled:cursor-not-allowed"
+										>
+											<option value="PLACED">PLACED</option>
+											<option value="PACKED">PACKED</option>
+											<option value="SHIPPED">SHIPPED</option>
+											<option value="DELIVERED">DELIVERED</option>
+											{order.status === "CANCELLED" && <option value="CANCELLED">CANCELLED</option>}
+											{order.status === "PENDING" && <option value="PENDING">PENDING</option>}
 											</select>
 											<Link
 												href={`/admin/orders/${order._id}`}
