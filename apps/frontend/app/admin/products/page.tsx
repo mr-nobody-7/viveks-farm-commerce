@@ -79,7 +79,7 @@ export default function AdminProductsPage() {
 			}
 
 			const data = await res.json();
-			setProducts(data);
+			setProducts(data.products ?? data);
 		} catch (err) {
 			console.error("Error fetching products:", err);
 		} finally {

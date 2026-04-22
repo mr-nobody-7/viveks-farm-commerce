@@ -254,9 +254,21 @@ router.delete("/admin/categories/:id", requireAdmin, async (req, res) => {
 });
 
 // Product CRUD
-router.get("/admin/products", requireAdmin, async (_req, res) => {
-	const products = await Product.find().populate("category").lean();
-	res.json(products);
+router.get("/admin/products", requireAdmin, async (req, res) => {
+	const page = Math.max(1, Number(req.query.page) || 1);
+	const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
+	const skip = (page - 1) * limit;
+	const [products, total] = await Promise.all([
+		Product.find().populate("category").skip(skip).limit(limit).lean(),
+		Product.countDocuments(),
+	]);
+	res.json({
+		products,
+		total,
+		page,
+		limit,
+		totalPages: Math.ceil(total / limit),
+	});
 });
 
 router.post("/admin/products", requireAdmin, async (req, res) => {
@@ -301,13 +313,26 @@ router.delete("/admin/products/:id", requireAdmin, async (req, res) => {
 });
 
 // Order Management
-router.get("/admin/orders", requireAdmin, async (_req, res) => {
-	const orders = await Order.find()
-		.populate("user", "mobile name")
-		.sort({ createdAt: -1 })
-		.lean();
-
-	res.json(orders);
+router.get("/admin/orders", requireAdmin, async (req, res) => {
+	const page = Math.max(1, Number(req.query.page) || 1);
+	const limit = Math.min(100, Math.max(1, Number(req.query.limit) || 20));
+	const skip = (page - 1) * limit;
+	const [orders, total] = await Promise.all([
+		Order.find()
+			.populate("user", "mobile name")
+			.sort({ createdAt: -1 })
+			.skip(skip)
+			.limit(limit)
+			.lean(),
+		Order.countDocuments(),
+	]);
+	res.json({
+		orders,
+		total,
+		page,
+		limit,
+		totalPages: Math.ceil(total / limit),
+	});
 });
 
 router.get("/admin/orders/:id", requireAdmin, async (req, res) => {

@@ -1,6 +1,7 @@
 import cookieParser from "cookie-parser";
 import cors from "cors";
 import express from "express";
+import rateLimit from "express-rate-limit";
 import mongoose from "mongoose";
 import adminRoutes from "./routes/admin.route";
 import authRoutes from "./routes/auth.route";
@@ -15,6 +16,27 @@ const app = express();
 
 const corsOrigin = process.env.CORS_ORIGIN || "http://localhost:3000";
 
+const otpRateLimit = rateLimit({
+	windowMs: 15 * 60 * 1000,
+	max: 5,
+	message: {
+		message: "Too many OTP requests, please try again after 15 minutes.",
+	},
+	standardHeaders: true,
+	legacyHeaders: false,
+});
+
+const contactRateLimit = rateLimit({
+	windowMs: 60 * 60 * 1000,
+	max: 3,
+	message: {
+		message:
+			"Too many contact form submissions, please try again after 1 hour.",
+	},
+	standardHeaders: true,
+	legacyHeaders: false,
+});
+
 app.use(
 	cors({
 		origin: corsOrigin,
@@ -23,6 +45,8 @@ app.use(
 );
 app.use(express.json());
 app.use(cookieParser());
+app.use("/api/auth/request-otp", otpRateLimit);
+app.use("/api/contact", contactRateLimit);
 app.use("/api", productRoutes);
 app.use("/api", settingsRoutes);
 app.use("/api", authRoutes);

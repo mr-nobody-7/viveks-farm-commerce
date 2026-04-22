@@ -1,10 +1,20 @@
 import { Router } from "express";
+import { z } from "zod";
 import { type AuthRequest, requireAuth } from "../middleware/auth.middleware";
 import { OTP } from "../models/otp.model";
 import { User } from "../models/user.model";
 import { generateToken } from "../utils/jwt";
 
 const router = Router();
+
+const requestOtpSchema = z.object({
+	mobile: z.string().regex(/^\d{10}$/, "Mobile must be a 10-digit number"),
+});
+
+const verifyOtpSchema = z.object({
+	mobile: z.string().regex(/^\d{10}$/, "Mobile must be a 10-digit number"),
+	otp: z.string().length(6, "OTP must be 6 digits"),
+});
 
 router.get("/users/me", requireAuth, async (req: AuthRequest, res) => {
 	const user = await User.findById(req.userId)
@@ -19,11 +29,14 @@ router.get("/users/me", requireAuth, async (req: AuthRequest, res) => {
 });
 
 router.post("/auth/request-otp", async (req, res) => {
-	const { mobile } = req.body;
-
-	if (!mobile) {
-		return res.status(400).json({ message: "Mobile required" });
+	const result = requestOtpSchema.safeParse(req.body);
+	if (!result.success) {
+		return res
+			.status(400)
+			.json({ message: result.error.issues[0]?.message ?? "Invalid input" });
 	}
+
+	const { mobile } = result.data;
 
 	const otp = Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -41,7 +54,13 @@ router.post("/auth/request-otp", async (req, res) => {
 });
 
 router.post("/auth/verify-otp", async (req, res) => {
-	const { mobile, otp } = req.body;
+	const result = verifyOtpSchema.safeParse(req.body);
+	if (!result.success) {
+		return res
+			.status(400)
+			.json({ message: result.error.issues[0]?.message ?? "Invalid input" });
+	}
+	const { mobile, otp } = result.data;
 
 	const existing = await OTP.findOne({ mobile });
 

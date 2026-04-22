@@ -1,22 +1,33 @@
 import { Router } from "express";
+import sanitizeHtml from "sanitize-html";
+import { z } from "zod";
 import { sendEmail } from "../lib/mailer";
 
 const router = Router();
 
-router.post("/", async (req, res) => {
-	const { name, email, mobile, message } = req.body as {
-		name?: string;
-		email?: string;
-		mobile?: string;
-		message?: string;
-	};
+const contactSchema = z.object({
+	name: z.string().min(1, "Name is required").max(100),
+	email: z.string().email("Invalid email").optional().or(z.literal("")),
+	mobile: z.string().regex(/^\d{10}$/, "Mobile must be 10 digits"),
+	message: z.string().min(1, "Message is required").max(2000),
+});
 
-	if (!name || !mobile || !message) {
+const sanitize = (str: string) =>
+	sanitizeHtml(str, { allowedTags: [], allowedAttributes: {} });
+
+router.post("/", async (req, res) => {
+	const result = contactSchema.safeParse(req.body);
+	if (!result.success) {
 		return res.status(400).json({
 			success: false,
-			message: "Name, mobile, and message are required",
+			message: result.error.issues[0]?.message ?? "Invalid input",
 		});
 	}
+
+	const name = sanitize(result.data.name);
+	const email = sanitize(result.data.email ?? "");
+	const mobile = sanitize(result.data.mobile);
+	const message = sanitize(result.data.message);
 
 	const to = process.env.BREVO_SENDER_EMAIL;
 	if (!to) {
