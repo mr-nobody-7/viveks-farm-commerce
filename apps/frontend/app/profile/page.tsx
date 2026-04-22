@@ -7,8 +7,17 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import {
+	Select,
+	SelectContent,
+	SelectItem,
+	SelectTrigger,
+	SelectValue,
+} from "@/components/ui/select";
 import { useAuthStore } from "@/lib/stores/auth-store";
+import { INDIAN_STATES } from "@/lib/constants";
 import { Package, Loader2 } from "lucide-react";
+import { toast } from "sonner";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -16,23 +25,39 @@ const Profile = () => {
 	const user = useAuthStore((state) => state.user);
 	const setUser = useAuthStore((state) => state.setUser);
 	const router = useRouter();
+
+	// Basic info
 	const [name, setName] = useState("");
-	const [loading, setLoading] = useState(false);
-	const [message, setMessage] = useState("");
+	const [profileLoading, setProfileLoading] = useState(false);
+
+	// Saved address
+	const [addrFullName, setAddrFullName] = useState("");
+	const [addrPhone, setAddrPhone] = useState("");
+	const [addrLine, setAddrLine] = useState("");
+	const [addrCity, setAddrCity] = useState("");
+	const [addrState, setAddrState] = useState("");
+	const [addrPincode, setAddrPincode] = useState("");
+	const [addrLoading, setAddrLoading] = useState(false);
 
 	useEffect(() => {
 		if (!user) {
 			router.push("/");
 		} else {
 			setName(user.name || "");
+			if (user.savedAddress) {
+				setAddrFullName(user.savedAddress.fullName || "");
+				setAddrPhone(user.savedAddress.phone || "");
+				setAddrLine(user.savedAddress.addressLine || "");
+				setAddrCity(user.savedAddress.city || "");
+				setAddrState(user.savedAddress.state || "");
+				setAddrPincode(user.savedAddress.pincode || "");
+			}
 		}
 	}, [user, router]);
 
-	const handleSave = async (e: React.FormEvent) => {
+	const handleSaveProfile = async (e: React.FormEvent) => {
 		e.preventDefault();
-		setLoading(true);
-		setMessage("");
-
+		setProfileLoading(true);
 		try {
 			const response = await fetch(`${API_URL}/api/users/profile`, {
 				method: "PATCH",
@@ -40,18 +65,42 @@ const Profile = () => {
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({ name }),
 			});
-
-			if (!response.ok) {
-				throw new Error("Failed to update profile");
-			}
-
+			if (!response.ok) throw new Error("Failed to update profile");
 			const updatedUser = await response.json();
 			setUser(updatedUser);
-			setMessage("Profile updated successfully!");
-		} catch (err) {
-			setMessage("Failed to update profile");
+			toast.success("Profile updated successfully!");
+		} catch {
+			toast.error("Failed to update profile");
 		} finally {
-			setLoading(false);
+			setProfileLoading(false);
+		}
+	};
+
+	const handleSaveAddress = async (e: React.FormEvent) => {
+		e.preventDefault();
+		setAddrLoading(true);
+		try {
+			const response = await fetch(`${API_URL}/api/users/address`, {
+				method: "PATCH",
+				credentials: "include",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({
+					fullName: addrFullName,
+					phone: addrPhone,
+					addressLine: addrLine,
+					city: addrCity,
+					state: addrState,
+					pincode: addrPincode,
+				}),
+			});
+			if (!response.ok) throw new Error("Failed to save address");
+			const updatedUser = await response.json();
+			setUser(updatedUser);
+			toast.success("Address saved successfully!");
+		} catch {
+			toast.error("Failed to save address");
+		} finally {
+			setAddrLoading(false);
 		}
 	};
 
@@ -85,12 +134,13 @@ const Profile = () => {
 
 				{/* Main Content */}
 				<div className="md:col-span-2 space-y-6">
+					{/* Basic Information */}
 					<Card>
 						<CardHeader>
 							<CardTitle>Basic Information</CardTitle>
 						</CardHeader>
 						<CardContent>
-							<form onSubmit={handleSave} className="space-y-4">
+							<form onSubmit={handleSaveProfile} className="space-y-4">
 								<div className="space-y-2">
 									<Label htmlFor="mobile">Mobile Number</Label>
 									<Input id="mobile" value={user.mobile} disabled />
@@ -104,25 +154,102 @@ const Profile = () => {
 										placeholder="Enter your name"
 									/>
 								</div>
-								{message && (
-									<p
-										className={`text-sm ${
-											message.includes("success")
-												? "text-green-600"
-												: "text-destructive"
-										}`}
-									>
-										{message}
-									</p>
-								)}
-								<Button type="submit" disabled={loading}>
-									{loading ? (
+								<Button type="submit" disabled={profileLoading}>
+									{profileLoading ? (
 										<>
 											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
 											Saving...
 										</>
 									) : (
 										"Save Changes"
+									)}
+								</Button>
+							</form>
+						</CardContent>
+					</Card>
+
+					{/* Saved Address */}
+					<Card>
+						<CardHeader>
+							<CardTitle>Saved Address</CardTitle>
+						</CardHeader>
+						<CardContent>
+							<form onSubmit={handleSaveAddress} className="space-y-4">
+								<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+									<div className="space-y-2">
+										<Label htmlFor="addrFullName">Full Name</Label>
+										<Input
+											id="addrFullName"
+											value={addrFullName}
+											onChange={(e) => setAddrFullName(e.target.value)}
+											placeholder="Full name"
+										/>
+									</div>
+									<div className="space-y-2">
+										<Label htmlFor="addrPhone">Phone</Label>
+										<Input
+											id="addrPhone"
+											type="tel"
+											value={addrPhone}
+											onChange={(e) => setAddrPhone(e.target.value)}
+											placeholder="10-digit mobile number"
+											pattern="[0-9]{10}"
+										/>
+									</div>
+								</div>
+								<div className="space-y-2">
+									<Label htmlFor="addrLine">Address</Label>
+									<Input
+										id="addrLine"
+										value={addrLine}
+										onChange={(e) => setAddrLine(e.target.value)}
+										placeholder="House/Flat, Street"
+									/>
+								</div>
+								<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+									<div className="space-y-2">
+										<Label htmlFor="addrCity">City</Label>
+										<Input
+											id="addrCity"
+											value={addrCity}
+											onChange={(e) => setAddrCity(e.target.value)}
+											placeholder="City"
+										/>
+									</div>
+									<div className="space-y-2">
+										<Label htmlFor="addrState">State</Label>
+										<Select value={addrState} onValueChange={setAddrState}>
+											<SelectTrigger id="addrState">
+												<SelectValue placeholder="Select state" />
+											</SelectTrigger>
+											<SelectContent>
+												{INDIAN_STATES.map((s) => (
+													<SelectItem key={s} value={s}>
+														{s}
+													</SelectItem>
+												))}
+											</SelectContent>
+										</Select>
+									</div>
+									<div className="space-y-2">
+										<Label htmlFor="addrPincode">Pincode</Label>
+										<Input
+											id="addrPincode"
+											value={addrPincode}
+											onChange={(e) => setAddrPincode(e.target.value)}
+											placeholder="500001"
+											pattern="[0-9]{6}"
+										/>
+									</div>
+								</div>
+								<Button type="submit" disabled={addrLoading}>
+									{addrLoading ? (
+										<>
+											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+											Saving...
+										</>
+									) : (
+										"Save Address"
 									)}
 								</Button>
 							</form>

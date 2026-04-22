@@ -47,6 +47,12 @@ const Checkout = () => {
   const [allowCOD, setAllowCOD] = useState(false);
   const [selectedState, setSelectedState] = useState("");
   const [deliveryCharge, setDeliveryCharge] = useState(49);
+  // Address fields (controlled so "Use saved address" can fill them)
+  const [addrName, setAddrName] = useState(user?.name ?? "");
+  const [addrPhone, setAddrPhone] = useState(user?.mobile ?? "");
+  const [addrLine, setAddrLine] = useState("");
+  const [addrCity, setAddrCity] = useState("");
+  const [addrPincode, setAddrPincode] = useState("");
 
   useEffect(() => {
     setAuthChecked(true);
@@ -158,14 +164,13 @@ const Checkout = () => {
     setError("");
     setLoading(true);
 
-    const formData = new FormData(e.target as HTMLFormElement);
     const address = {
-      fullName: formData.get("name") as string,
-      phone: formData.get("phone") as string,
-      addressLine: formData.get("address") as string,
-      city: formData.get("city") as string,
+      fullName: addrName,
+      phone: addrPhone,
+      addressLine: addrLine,
+      city: addrCity,
       state: selectedState,
-      pincode: formData.get("pincode") as string,
+      pincode: addrPincode,
     };
 
     try {
@@ -275,11 +280,33 @@ const Checkout = () => {
             {/* Shipping */}
             <Card>
               <CardContent className="p-6 space-y-4">
-                <h3 className="font-semibold text-lg">Shipping Address</h3>
+                <div className="flex items-center justify-between">
+                  <h3 className="font-semibold text-lg">Shipping Address</h3>
+                  {user?.savedAddress?.addressLine && (
+                    <Button
+                      type="button"
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const sa = user.savedAddress;
+                        if (!sa) return;
+                        setAddrName(sa.fullName || "");
+                        setAddrPhone(sa.phone || "");
+                        setAddrLine(sa.addressLine || "");
+                        setAddrCity(sa.city || "");
+                        setAddrState(sa.state || "");
+                        setAddrPincode(sa.pincode || "");
+                        toast.success("Saved address applied");
+                      }}
+                    >
+                      Use saved address
+                    </Button>
+                  )}
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="name">Full Name</Label>
-                    <Input id="name" name="name" required placeholder="Your full name" defaultValue={user?.name ?? ""} />
+                    <Input id="name" name="name" required placeholder="Your full name" value={addrName} onChange={(e) => setAddrName(e.target.value)} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="phone">Phone Number</Label>
@@ -290,7 +317,8 @@ const Checkout = () => {
                       required
                       placeholder="9876543210"
                       pattern="[0-9]{10}"
-                      defaultValue={user?.mobile ?? ""}
+                      value={addrPhone}
+                      onChange={(e) => setAddrPhone(e.target.value)}
                     />
                   </div>
                 </div>
@@ -301,12 +329,14 @@ const Checkout = () => {
                     name="address"
                     required
                     placeholder="House/Flat, Street"
+                    value={addrLine}
+                    onChange={(e) => setAddrLine(e.target.value)}
                   />
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-2">
                     <Label htmlFor="city">City</Label>
-                    <Input id="city" name="city" required placeholder="City" />
+                    <Input id="city" name="city" required placeholder="City" value={addrCity} onChange={(e) => setAddrCity(e.target.value)} />
                   </div>
                   <div className="space-y-2">
                     <Label htmlFor="state">State</Label>
@@ -329,6 +359,8 @@ const Checkout = () => {
                       required
                       placeholder="500001"
                       pattern="[0-9]{6}"
+                      value={addrPincode}
+                      onChange={(e) => setAddrPincode(e.target.value)}
                     />
                   </div>
                 </div>
