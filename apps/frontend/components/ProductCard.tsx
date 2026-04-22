@@ -46,6 +46,9 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 						alt={product.name}
 						className="h-full w-full object-cover transition-transform group-hover:scale-105"
 						loading="lazy"
+						onError={(e) => {
+							(e.target as HTMLImageElement).src = "/placeholder.svg";
+						}}
 					/>
 					<Badge className="absolute top-2 right-2" variant="secondary">
 						{variant.label}

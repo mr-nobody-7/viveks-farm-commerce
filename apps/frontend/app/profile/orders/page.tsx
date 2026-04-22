@@ -15,7 +15,7 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 interface Order {
 	_id: string;
 	totalAmount: number;
-	status: "PLACED" | "PACKED" | "SHIPPED" | "DELIVERED" | "PENDING";
+	status: "PLACED" | "PACKED" | "SHIPPED" | "DELIVERED" | "PENDING" | "CANCELLED";
 	paymentStatus: "PENDING" | "PAID" | "FAILED";
 	paymentMethod: "ONLINE" | "COD";
 	createdAt: string;
@@ -27,6 +27,7 @@ const statusColors = {
 	SHIPPED: "bg-purple-500",
 	DELIVERED: "bg-green-500",
 	PENDING: "bg-gray-500",
+	CANCELLED: "bg-red-500",
 };
 
 const paymentStatusColors = {
