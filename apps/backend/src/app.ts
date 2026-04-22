@@ -14,7 +14,10 @@ import userRoutes from "./routes/user.route";
 
 const app = express();
 
-const corsOrigin = process.env.CORS_ORIGIN || "http://localhost:3000";
+const allowedOrigins = (process.env.CORS_ORIGIN || "http://localhost:3000")
+	.split(",")
+	.map((o) => o.trim())
+	.filter(Boolean);
 
 const otpRateLimit = rateLimit({
 	windowMs: 15 * 60 * 1000,
@@ -39,7 +42,13 @@ const contactRateLimit = rateLimit({
 
 app.use(
 	cors({
-		origin: corsOrigin,
+		origin: (origin, callback) => {
+			if (!origin || allowedOrigins.includes(origin)) {
+				callback(null, true);
+			} else {
+				callback(new Error(`CORS: origin '${origin}' not allowed`));
+			}
+		},
 		credentials: true,
 	}),
 );
