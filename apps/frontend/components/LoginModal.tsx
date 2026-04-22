@@ -38,7 +38,7 @@ export const LoginModal = ({ open, onOpenChange }: LoginModalProps) => {
 		timerRef.current = setInterval(() => {
 			setResendCountdown((prev) => {
 				if (prev <= 1) {
-					clearInterval(timerRef.current);
+					clearInterval(timerRef.current ?? undefined);
 					return 0;
 				}
 				return prev - 1;

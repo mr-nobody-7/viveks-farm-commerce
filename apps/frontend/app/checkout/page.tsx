@@ -321,7 +321,7 @@ const Checkout = () => {
 												setAddrPhone(sa.phone || "");
 												setAddrLine(sa.addressLine || "");
 												setAddrCity(sa.city || "");
-												setAddrState(sa.state || "");
+												setSelectedState(sa.state || "");
 												setAddrPincode(sa.pincode || "");
 												toast.success("Saved address applied");
 											}}

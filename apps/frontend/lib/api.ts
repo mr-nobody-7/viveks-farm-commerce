@@ -1,5 +1,7 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
+import type { User } from "@/lib/stores/auth-store";
+
 const requestJson = async <T>(path: string, init?: RequestInit): Promise<T> => {
 	if (!API_URL) {
 		throw new Error("NEXT_PUBLIC_API_URL is not configured");
@@ -90,8 +92,8 @@ export const api = {
 	async verifyOTP(
 		mobile: string,
 		otp: string,
-	): Promise<{ message: string; user: Record<string, unknown> }> {
-		return requestJson<{ message: string; user: Record<string, unknown> }>(
+	): Promise<{ message: string; user: User }> {
+		return requestJson<{ message: string; user: User }>(
 			"/api/auth/verify-otp",
 			{
 				method: "POST",

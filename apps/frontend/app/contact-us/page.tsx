@@ -111,12 +111,7 @@ const Contact = () => {
 										disabled={loading}
 									/>
 								</div>
-								{successMessage ? (
-									<p className="text-sm text-green-600">{successMessage}</p>
-								) : null}
-								{errorMessage ? (
-									<p className="text-sm text-red-600">{errorMessage}</p>
-								) : null}
+
 								<Button className="w-full" type="submit" disabled={loading}>
 									{loading ? "Sending..." : "Send Message"}
 								</Button>
