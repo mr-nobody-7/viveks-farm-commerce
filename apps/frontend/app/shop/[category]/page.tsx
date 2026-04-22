@@ -1,8 +1,10 @@
 "use client";
-import { use, useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import Link from "next/link";
+import { use, useMemo, useState } from "react";
 import { ProductCard } from "@/components/ProductCard";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
 	Select,
 	SelectContent,
@@ -10,8 +12,6 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 
 type SortOption = "default" | "price-asc" | "price-desc";
@@ -22,12 +22,12 @@ interface ShopByCategoryProps {
 
 export default function ShopByCategory({ params }: ShopByCategoryProps) {
 	const { category } = use(params);
-  const normalizedCategory = category.toLowerCase();
+	const normalizedCategory = category.toLowerCase();
 	const [sort, setSort] = useState<SortOption>("default");
 
 	const { data: products = [], isLoading: productsLoading } = useQuery({
-    queryKey: ["products", "category", normalizedCategory],
-    queryFn: () => api.getProductsByCategory(normalizedCategory),
+		queryKey: ["products", "category", normalizedCategory],
+		queryFn: () => api.getProductsByCategory(normalizedCategory),
 	});
 
 	const { data: categories = [], isLoading: categoriesLoading } = useQuery({
@@ -45,13 +45,13 @@ export default function ShopByCategory({ params }: ShopByCategoryProps) {
 		return list;
 	}, [products, sort]);
 
-  const currentCategory = categories.find(
-    (c) => c.slug.toLowerCase() === normalizedCategory,
-  );
+	const currentCategory = categories.find(
+		(c) => c.slug.toLowerCase() === normalizedCategory,
+	);
 
 	if (productsLoading || categoriesLoading) {
 		return (
-      <div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
+			<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
 				<p className="text-muted-foreground">Loading...</p>
 			</div>
 		);
@@ -59,95 +59,95 @@ export default function ShopByCategory({ params }: ShopByCategoryProps) {
 
 	return (
 		<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      {/* Breadcrumb */}
-      <div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
-        <Link href="/" className="hover:text-primary">
-          Home
-        </Link>
-        <span>/</span>
-        <Link href="/shop" className="hover:text-primary">
-          Shop
-        </Link>
-        {currentCategory && (
-          <>
-            <span>/</span>
-            <span className="text-foreground">{currentCategory.name}</span>
-          </>
-        )}
-      </div>
+			{/* Breadcrumb */}
+			<div className="flex items-center gap-2 text-sm text-muted-foreground mb-6">
+				<Link href="/" className="hover:text-primary">
+					Home
+				</Link>
+				<span>/</span>
+				<Link href="/shop" className="hover:text-primary">
+					Shop
+				</Link>
+				{currentCategory && (
+					<>
+						<span>/</span>
+						<span className="text-foreground">{currentCategory.name}</span>
+					</>
+				)}
+			</div>
 
-      <div className="flex flex-col md:flex-row gap-8">
-        {/* Category Sidebar */}
-        <aside className="w-full md:w-56 shrink-0">
-          <h3 className="font-semibold mb-3">Categories</h3>
-          <div className="flex flex-row md:flex-col gap-2 flex-wrap">
-            <Link href="/shop">
-              <Badge
-                variant={!category ? "default" : "outline"}
-                className="cursor-pointer"
-              >
-                All
-              </Badge>
-            </Link>
-            {categories
-              .filter((cat) => Boolean(cat.slug?.trim()))
-              .map((cat) => (
-							<Link key={cat._id} href={`/shop/${cat.slug}`}>
-								<Badge
-                  variant={
-                    normalizedCategory === cat.slug.toLowerCase()
-                      ? "default"
-                      : "outline"
-                  }
-									className="cursor-pointer"
-								>
-									{cat.name}
-								</Badge>
-							</Link>
-            ))}
-          </div>
-        </aside>
-
-        {/* Products */}
-        <div className="flex-1">
-          <div className="flex items-center justify-between mb-6">
-            <p className="text-muted-foreground text-sm">
-              {filteredProducts.length} product
-              {filteredProducts.length !== 1 ? "s" : ""}
-            </p>
-            <Select
-              value={sort}
-              onValueChange={(v) => setSort(v as SortOption)}
-            >
-              <SelectTrigger className="w-44">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="default">Default</SelectItem>
-                <SelectItem value="price-asc">Price: Low to High</SelectItem>
-                <SelectItem value="price-desc">Price: High to Low</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          {filteredProducts.length > 0 ? (
-					<div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-						{filteredProducts.map((product) => (
-							<ProductCard key={product._id} product={product} />
-						))}
+			<div className="flex flex-col md:flex-row gap-8">
+				{/* Category Sidebar */}
+				<aside className="w-full md:w-56 shrink-0">
+					<h3 className="font-semibold mb-3">Categories</h3>
+					<div className="flex flex-row md:flex-col gap-2 flex-wrap">
+						<Link href="/shop">
+							<Badge
+								variant={!category ? "default" : "outline"}
+								className="cursor-pointer"
+							>
+								All
+							</Badge>
+						</Link>
+						{categories
+							.filter((cat) => Boolean(cat.slug?.trim()))
+							.map((cat) => (
+								<Link key={cat._id} href={`/shop/${cat.slug}`}>
+									<Badge
+										variant={
+											normalizedCategory === cat.slug.toLowerCase()
+												? "default"
+												: "outline"
+										}
+										className="cursor-pointer"
+									>
+										{cat.name}
+									</Badge>
+								</Link>
+							))}
 					</div>
-          ) : (
-            <div className="text-center py-20">
-              <p className="text-muted-foreground">
-                No products found in this category.
-              </p>
-              <Button variant="outline" className="mt-4" asChild>
-                <Link href="/shop">Browse all products</Link>
-              </Button>
-            </div>
-          )}
-        </div>
+				</aside>
+
+				{/* Products */}
+				<div className="flex-1">
+					<div className="flex items-center justify-between mb-6">
+						<p className="text-muted-foreground text-sm">
+							{filteredProducts.length} product
+							{filteredProducts.length !== 1 ? "s" : ""}
+						</p>
+						<Select
+							value={sort}
+							onValueChange={(v) => setSort(v as SortOption)}
+						>
+							<SelectTrigger className="w-44">
+								<SelectValue placeholder="Sort by" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="default">Default</SelectItem>
+								<SelectItem value="price-asc">Price: Low to High</SelectItem>
+								<SelectItem value="price-desc">Price: High to Low</SelectItem>
+							</SelectContent>
+						</Select>
+					</div>
+
+					{filteredProducts.length > 0 ? (
+						<div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+							{filteredProducts.map((product) => (
+								<ProductCard key={product._id} product={product} />
+							))}
+						</div>
+					) : (
+						<div className="text-center py-20">
+							<p className="text-muted-foreground">
+								No products found in this category.
+							</p>
+							<Button variant="outline" className="mt-4" asChild>
+								<Link href="/shop">Browse all products</Link>
+							</Button>
+						</div>
+					)}
+				</div>
+			</div>
 		</div>
-	</div>
 	);
 }

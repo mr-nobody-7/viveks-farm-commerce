@@ -1,13 +1,14 @@
 "use client";
 
-import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
 import { ShoppingCart } from "lucide-react";
-import type { Product } from "@/lib/api";
+import Image from "next/image";
 import Link from "next/link";
-import { useCartStore } from "@/lib/stores/cart-store";
 import { toast } from "sonner";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import type { Product } from "@/lib/api";
+import { useCartStore } from "@/lib/stores/cart-store";
 
 interface ProductCardProps {
 	product: Product;
@@ -18,7 +19,10 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 	const addItem = useCartStore((state) => state.addItem);
 	const discountPercentage =
 		variant.originalPrice && variant.originalPrice > variant.price
-			? Math.round(((variant.originalPrice - variant.price) / variant.originalPrice) * 100)
+			? Math.round(
+					((variant.originalPrice - variant.price) / variant.originalPrice) *
+						100,
+				)
 			: 0;
 
 	const handleAddToCart = (e: React.MouseEvent) => {
@@ -41,14 +45,12 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 		<Link href={`/product/${product.slug}`}>
 			<Card className="group overflow-hidden transition-all hover:shadow-lg hover:-translate-y-1">
 				<div className="relative aspect-square bg-muted overflow-hidden">
-					<img
+					<Image
 						src={product.images[0] || "/placeholder.svg"}
 						alt={product.name}
-						className="h-full w-full object-cover transition-transform group-hover:scale-105"
-						loading="lazy"
-						onError={(e) => {
-							(e.target as HTMLImageElement).src = "/placeholder.svg";
-						}}
+						fill
+						className="object-cover transition-transform group-hover:scale-105"
+						sizes="(max-width: 768px) 50vw, 25vw"
 					/>
 					<Badge className="absolute top-2 right-2" variant="secondary">
 						{variant.label}
@@ -77,11 +79,7 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 						)}
 					</div>
 					<div className="grid grid-cols-2 gap-2 pt-1">
-						<Button
-							size="sm"
-							className="h-10 w-full"
-							onClick={handleAddToCart}
-						>
+						<Button size="sm" className="h-10 w-full" onClick={handleAddToCart}>
 							<ShoppingCart className="h-4 w-4 mr-1" />
 							Add
 						</Button>

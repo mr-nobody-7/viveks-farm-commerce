@@ -1,9 +1,10 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { AdminTableSkeleton } from "@/components/Skeletons";
-import { useEffect, useState } from "react";
+import Image from "next/image";
 import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { AdminTableSkeleton } from "@/components/Skeletons";
+import { Button } from "@/components/ui/button";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -46,7 +47,9 @@ export default function AdminProductsPage() {
 	const [loading, setLoading] = useState(true);
 	const [searchQuery, setSearchQuery] = useState("");
 	const [categoryFilter, setCategoryFilter] = useState("ALL");
-	const [statusFilter, setStatusFilter] = useState<"ALL" | "ACTIVE" | "INACTIVE">("ALL");
+	const [statusFilter, setStatusFilter] = useState<
+		"ALL" | "ACTIVE" | "INACTIVE"
+	>("ALL");
 	const [showModal, setShowModal] = useState(false);
 	const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 	const [uploading, setUploading] = useState(false);
@@ -61,7 +64,7 @@ export default function AdminProductsPage() {
 	});
 	const router = useRouter();
 
-	const fetchProducts = async () => {
+	const fetchProducts = useCallback(async () => {
 		try {
 			const res = await fetch(`${API_URL}/api/admin/products`, {
 				credentials: "include",
@@ -82,9 +85,9 @@ export default function AdminProductsPage() {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, [router]);
 
-	const fetchCategories = async () => {
+	const fetchCategories = useCallback(async () => {
 		try {
 			const res = await fetch(`${API_URL}/api/admin/categories`, {
 				credentials: "include",
@@ -99,12 +102,12 @@ export default function AdminProductsPage() {
 		} catch (err) {
 			console.error("Error fetching categories:", err);
 		}
-	};
+	}, []);
 
 	useEffect(() => {
 		fetchProducts();
 		fetchCategories();
-	}, [router]);
+	}, [fetchProducts, fetchCategories]);
 
 	const handleOpenModal = (product?: Product) => {
 		if (product) {
@@ -282,9 +285,15 @@ export default function AdminProductsPage() {
 
 	const q = searchQuery.trim().toLowerCase();
 	const filteredProducts = products.filter((p) => {
-		const matchesSearch = !q || p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q);
-		const matchesCategory = categoryFilter === "ALL" || p.category._id === categoryFilter;
-		const matchesStatus = statusFilter === "ALL" || (statusFilter === "ACTIVE" ? p.isActive : !p.isActive);
+		const matchesSearch =
+			!q ||
+			p.name.toLowerCase().includes(q) ||
+			p.description.toLowerCase().includes(q);
+		const matchesCategory =
+			categoryFilter === "ALL" || p.category._id === categoryFilter;
+		const matchesStatus =
+			statusFilter === "ALL" ||
+			(statusFilter === "ACTIVE" ? p.isActive : !p.isActive);
 		return matchesSearch && matchesCategory && matchesStatus;
 	});
 
@@ -311,22 +320,32 @@ export default function AdminProductsPage() {
 				>
 					<option value="ALL">All Categories</option>
 					{categories.map((cat) => (
-						<option key={cat._id} value={cat._id}>{cat.name}</option>
+						<option key={cat._id} value={cat._id}>
+							{cat.name}
+						</option>
 					))}
 				</select>
 				<select
 					value={statusFilter}
-					onChange={(e) => setStatusFilter(e.target.value as "ALL" | "ACTIVE" | "INACTIVE")}
+					onChange={(e) =>
+						setStatusFilter(e.target.value as "ALL" | "ACTIVE" | "INACTIVE")
+					}
 					className="px-3 py-2 border border-gray-300 rounded-md text-sm"
 				>
 					<option value="ALL">All Statuses</option>
 					<option value="ACTIVE">Active</option>
 					<option value="INACTIVE">Inactive</option>
 				</select>
-				{(searchQuery || categoryFilter !== "ALL" || statusFilter !== "ALL") && (
+				{(searchQuery ||
+					categoryFilter !== "ALL" ||
+					statusFilter !== "ALL") && (
 					<button
 						type="button"
-						onClick={() => { setSearchQuery(""); setCategoryFilter("ALL"); setStatusFilter("ALL"); }}
+						onClick={() => {
+							setSearchQuery("");
+							setCategoryFilter("ALL");
+							setStatusFilter("ALL");
+						}}
 						className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-50 hover:bg-gray-100"
 					>
 						Reset
@@ -337,7 +356,7 @@ export default function AdminProductsPage() {
 			{/* Products Table */}
 			<div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
 				<div className="overflow-x-auto">
-					<table className="min-w-[1000px] divide-y divide-gray-200">
+					<table className="min-w-250 divide-y divide-gray-200">
 						<thead className="bg-gray-50">
 							<tr>
 								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
@@ -358,23 +377,28 @@ export default function AdminProductsPage() {
 							</tr>
 						</thead>
 						<tbody className="bg-white divide-y divide-gray-200">
-						{filteredProducts.length === 0 && (
-							<tr>
-								<td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-									{products.length === 0
-										? "No products yet. Click \"Add Product\" to create one."
-										: "No products match your filters."}
-								</td>
-							</tr>
-						)}
-						{filteredProducts.map((product) => (
+							{filteredProducts.length === 0 && (
+								<tr>
+									<td
+										colSpan={5}
+										className="px-6 py-12 text-center text-gray-500"
+									>
+										{products.length === 0
+											? 'No products yet. Click "Add Product" to create one.'
+											: "No products match your filters."}
+									</td>
+								</tr>
+							)}
+							{filteredProducts.map((product) => (
 								<tr key={product._id}>
 									<td className="px-6 py-4 whitespace-nowrap">
 										<div className="flex items-center">
 											{product.images[0] && (
-												<img
+												<Image
 													src={product.images[0]}
 													alt={product.name}
+													width={40}
+													height={40}
 													className="h-10 w-10 rounded object-cover mr-3"
 												/>
 											)}
@@ -392,16 +416,16 @@ export default function AdminProductsPage() {
 										{product.category.name}
 									</td>
 									<td className="px-6 py-4 text-sm text-gray-500">
-										{product.variants.map((v, i) => (
-											<div key={i}>
+										{product.variants.map((v) => (
+											<div key={v.label}>
 												{v.label}: ₹{v.price}
 												{typeof v.originalPrice === "number" &&
 												v.originalPrice > 0
 													? ` (MRP ₹${v.originalPrice})`
 													: ""}
-													{getDiscountPercentage(v.price, v.originalPrice) > 0
-														? ` - ${getDiscountPercentage(v.price, v.originalPrice)}% OFF`
-														: ""}
+												{getDiscountPercentage(v.price, v.originalPrice) > 0
+													? ` - ${getDiscountPercentage(v.price, v.originalPrice)}% OFF`
+													: ""}
 												{v.isActive ? "" : " [Inactive]"}
 											</div>
 										))}
@@ -521,9 +545,9 @@ export default function AdminProductsPage() {
 							{/* Variants */}
 							<div>
 								<div className="flex justify-between items-center mb-2">
-									<label className="block text-sm font-medium text-gray-700">
+									<p className="block text-sm font-medium text-gray-700">
 										Variants
-									</label>
+									</p>
 									<Button
 										type="button"
 										variant="outline"
@@ -534,8 +558,8 @@ export default function AdminProductsPage() {
 									</Button>
 								</div>
 								<p className="mb-3 text-xs text-gray-500">
-									Set selling price in "Price". Add "MRP" only if you want discount
-									to be shown automatically.
+									Set selling price in "Price". Add "MRP" only if you want
+									discount to be shown automatically.
 								</p>
 								<div className="mb-2 hidden grid-cols-[minmax(220px,1fr)_128px_176px_auto] gap-2 px-1 text-xs font-medium text-gray-500 md:grid">
 									<span>Variant Label</span>
@@ -545,7 +569,7 @@ export default function AdminProductsPage() {
 								</div>
 								{formData.variants.map((variant, index) => (
 									<div
-										key={index}
+										key={variant.label || `variant-${index}`}
 										className="mb-3 flex flex-wrap items-center gap-2"
 									>
 										<input
@@ -589,9 +613,16 @@ export default function AdminProductsPage() {
 											}
 											className="w-44 px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
 										/>
-										{getDiscountPercentage(variant.price, variant.originalPrice) > 0 && (
+										{getDiscountPercentage(
+											variant.price,
+											variant.originalPrice,
+										) > 0 && (
 											<span className="text-xs font-medium text-green-700">
-												{getDiscountPercentage(variant.price, variant.originalPrice)}% OFF
+												{getDiscountPercentage(
+													variant.price,
+													variant.originalPrice,
+												)}
+												% OFF
 											</span>
 										)}
 										<label className="flex items-center gap-2 px-2 text-sm text-gray-700">
@@ -624,15 +655,17 @@ export default function AdminProductsPage() {
 
 							{/* Images */}
 							<div>
-								<label className="block text-sm font-medium text-gray-700 mb-2">
+								<p className="block text-sm font-medium text-gray-700 mb-2">
 									Images
-								</label>
+								</p>
 								<div className="flex flex-wrap gap-2 mb-2">
 									{formData.images.map((url, index) => (
-										<div key={index} className="relative">
-											<img
+										<div key={url} className="relative">
+											<Image
 												src={url}
 												alt={`Product ${index + 1}`}
+												width={80}
+												height={80}
 												className="h-20 w-20 object-cover rounded border"
 											/>
 											<button

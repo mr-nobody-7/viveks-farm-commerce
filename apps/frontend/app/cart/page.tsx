@@ -1,13 +1,14 @@
 "use client";
 
+import { Minus, Plus, ShoppingBag, Trash2 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
-import { Minus, Plus, Trash2, ShoppingBag } from "lucide-react";
 import { useCartStore } from "@/lib/stores/cart-store";
-import { toast } from "sonner";
-import { useEffect, useState } from "react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -22,15 +23,11 @@ const Cart = () => {
 		fetch(`${API_URL}/api/settings`)
 			.then((r) => r.json())
 			.then((d) => {
-				if (typeof d.deliveryCharge === "number") setDeliveryCharge(d.deliveryCharge);
+				if (typeof d.deliveryCharge === "number")
+					setDeliveryCharge(d.deliveryCharge);
 			})
 			.catch(() => {});
 	}, []);
-
-	const handleRemove = (productId: string, variantLabel: string, name: string) => {
-		removeItem(productId, variantLabel);
-		toast.success(`${name} removed from cart`);
-	};
 
 	// Derive subtotal from items
 	const subtotal = items.reduce(
@@ -57,7 +54,9 @@ const Cart = () => {
 
 	return (
 		<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
-			<h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">Shopping Cart</h1>
+			<h1 className="text-2xl sm:text-3xl font-bold mb-6 sm:mb-8">
+				Shopping Cart
+			</h1>
 
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
 				{/* Cart items */}
@@ -66,18 +65,20 @@ const Cart = () => {
 						<Card key={`${item.productId}-${item.variantLabel}`}>
 							<CardContent className="p-4 flex flex-col sm:flex-row gap-4">
 								<div className="h-20 w-20 rounded-md bg-muted overflow-hidden shrink-0">
-									<img
+									<Image
 										src={item.image}
 										alt={item.name}
+										width={80}
+										height={80}
 										className="h-full w-full object-cover"
 									/>
 								</div>
 								<div className="flex-1 min-w-0">
 									<h3 className="font-semibold truncate">{item.name}</h3>
-									<p className="text-sm text-muted-foreground">{item.variantLabel}</p>
-									<p className="text-primary font-bold mt-1">
-										₹{item.price}
+									<p className="text-sm text-muted-foreground">
+										{item.variantLabel}
 									</p>
+									<p className="text-primary font-bold mt-1">₹{item.price}</p>
 								</div>
 								<div className="flex flex-row sm:flex-col items-center sm:items-end justify-between sm:justify-start gap-2">
 									<Button
@@ -85,9 +86,9 @@ const Cart = () => {
 										size="icon"
 										className="h-8 w-8 text-destructive"
 										onClick={() => {
-										removeItem(item.productId, item.variantLabel);
-										toast.success(`${item.name} removed from cart`);
-									}}
+											removeItem(item.productId, item.variantLabel);
+											toast.success(`${item.name} removed from cart`);
+										}}
 									>
 										<Trash2 className="h-4 w-4" />
 									</Button>

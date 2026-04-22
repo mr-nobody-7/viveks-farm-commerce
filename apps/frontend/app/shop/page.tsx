@@ -1,9 +1,12 @@
 "use client";
-import { useState, useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
+import { ShoppingBag } from "lucide-react";
+import Link from "next/link";
+import { useMemo, useState } from "react";
 import { ProductCard } from "@/components/ProductCard";
 import { ProductCardSkeleton } from "@/components/Skeletons";
-import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
 	Select,
 	SelectContent,
@@ -11,10 +14,7 @@ import {
 	SelectTrigger,
 	SelectValue,
 } from "@/components/ui/select";
-import Link from "next/link";
-import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
-import { ShoppingBag } from "lucide-react";
 
 type SortOption = "default" | "price-asc" | "price-desc";
 
@@ -56,7 +56,10 @@ const Shop = () => {
 						<div className="h-8 bg-gray-200 rounded w-3/4 mb-3 animate-pulse" />
 						<div className="space-y-2">
 							{[1, 2, 3].map((i) => (
-								<div key={i} className="h-10 bg-gray-200 rounded animate-pulse" />
+								<div
+									key={i}
+									className="h-10 bg-gray-200 rounded animate-pulse"
+								/>
 							))}
 						</div>
 					</aside>
@@ -95,61 +98,63 @@ const Shop = () => {
 						{categories
 							.filter((cat) => Boolean(cat.slug?.trim()))
 							.map((cat) => (
-							<Link key={cat._id} href={`/shop/${cat.slug}`}>
-								<Badge variant="outline" className="cursor-pointer">
-									{cat.name}
-								</Badge>
-							</Link>
-						))}
+								<Link key={cat._id} href={`/shop/${cat.slug}`}>
+									<Badge variant="outline" className="cursor-pointer">
+										{cat.name}
+									</Badge>
+								</Link>
+							))}
 					</div>
 				</aside>
 
-        {/* Products */}
-        <div className="flex-1">
-          <div className="flex items-center justify-between mb-6">
-            <p className="text-muted-foreground text-sm">
-              {filteredProducts.length} product
-              {filteredProducts.length !== 1 ? "s" : ""}
-            </p>
-            <Select
-              value={sort}
-              onValueChange={(v) => setSort(v as SortOption)}
-            >
-              <SelectTrigger className="w-44">
-                <SelectValue placeholder="Sort by" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="default">Default</SelectItem>
-                <SelectItem value="price-asc">Price: Low to High</SelectItem>
-                <SelectItem value="price-desc">Price: High to Low</SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
+				{/* Products */}
+				<div className="flex-1">
+					<div className="flex items-center justify-between mb-6">
+						<p className="text-muted-foreground text-sm">
+							{filteredProducts.length} product
+							{filteredProducts.length !== 1 ? "s" : ""}
+						</p>
+						<Select
+							value={sort}
+							onValueChange={(v) => setSort(v as SortOption)}
+						>
+							<SelectTrigger className="w-44">
+								<SelectValue placeholder="Sort by" />
+							</SelectTrigger>
+							<SelectContent>
+								<SelectItem value="default">Default</SelectItem>
+								<SelectItem value="price-asc">Price: Low to High</SelectItem>
+								<SelectItem value="price-desc">Price: High to Low</SelectItem>
+							</SelectContent>
+						</Select>
+					</div>
 
-				{filteredProducts.length > 0 ? (
-					<div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
-						{filteredProducts.map((product) => (
-							<ProductCard key={product._id} product={product} />
-						))}
-					</div>
-				) : (
-					<div className="text-center py-20 space-y-4">
-						<ShoppingBag className="h-16 w-16 mx-auto text-muted-foreground" />
-						<div>
-							<h3 className="text-xl font-semibold mb-2">No products found</h3>
-							<p className="text-muted-foreground">
-								Try browsing other categories or check back later.
-							</p>
+					{filteredProducts.length > 0 ? (
+						<div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
+							{filteredProducts.map((product) => (
+								<ProductCard key={product._id} product={product} />
+							))}
 						</div>
-						<Button asChild>
-							<Link href="/">Go Home</Link>
-						</Button>
-					</div>
-				)}
-        </div>
-      </div>
-    </div>
-  );
+					) : (
+						<div className="text-center py-20 space-y-4">
+							<ShoppingBag className="h-16 w-16 mx-auto text-muted-foreground" />
+							<div>
+								<h3 className="text-xl font-semibold mb-2">
+									No products found
+								</h3>
+								<p className="text-muted-foreground">
+									Try browsing other categories or check back later.
+								</p>
+							</div>
+							<Button asChild>
+								<Link href="/">Go Home</Link>
+							</Button>
+						</div>
+					)}
+				</div>
+			</div>
+		</div>
+	);
 };
 
 export default Shop;

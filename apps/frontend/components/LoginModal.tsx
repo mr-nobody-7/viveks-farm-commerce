@@ -1,6 +1,8 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { Loader2 } from "lucide-react";
+import { useEffect, useRef, useState } from "react";
+import { Button } from "@/components/ui/button";
 import {
 	Dialog,
 	DialogContent,
@@ -8,12 +10,10 @@ import {
 	DialogHeader,
 	DialogTitle,
 } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/lib/stores/auth-store";
-import { Loader2 } from "lucide-react";
 
 const RESEND_COOLDOWN = 30;
 
@@ -38,7 +38,7 @@ export const LoginModal = ({ open, onOpenChange }: LoginModalProps) => {
 		timerRef.current = setInterval(() => {
 			setResendCountdown((prev) => {
 				if (prev <= 1) {
-					clearInterval(timerRef.current!);
+					clearInterval(timerRef.current);
 					return 0;
 				}
 				return prev - 1;

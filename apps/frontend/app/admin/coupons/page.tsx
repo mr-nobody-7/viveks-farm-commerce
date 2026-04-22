@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Button } from "@/components/ui/button";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { AdminTableSkeleton } from "@/components/Skeletons";
+import { Button } from "@/components/ui/button";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -49,7 +49,7 @@ export default function AdminCouponsPage() {
 		applicableProducts: [] as string[],
 	});
 
-	const fetchData = async () => {
+	const fetchData = useCallback(async () => {
 		try {
 			const [couponsRes, productsRes] = await Promise.all([
 				fetch(`${API_URL}/api/admin/coupons`, { credentials: "include" }),
@@ -77,11 +77,11 @@ export default function AdminCouponsPage() {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, [router]);
 
 	useEffect(() => {
 		fetchData();
-	}, [router]);
+	}, [fetchData]);
 
 	const resetForm = () => {
 		setFormData({
@@ -144,7 +144,9 @@ export default function AdminCouponsPage() {
 				maxDiscountAmount: formData.maxDiscountAmount
 					? Number(formData.maxDiscountAmount)
 					: undefined,
-				usageLimit: formData.usageLimit ? Number(formData.usageLimit) : undefined,
+				usageLimit: formData.usageLimit
+					? Number(formData.usageLimit)
+					: undefined,
 				expiresAt: formData.expiresAt || undefined,
 				isActive: formData.isActive,
 				applicableProducts: formData.applicableProducts,
@@ -225,7 +227,10 @@ export default function AdminCouponsPage() {
 						<tbody className="bg-white divide-y divide-gray-200">
 							{coupons.length === 0 && (
 								<tr>
-									<td colSpan={6} className="px-6 py-12 text-center text-gray-500">
+									<td
+										colSpan={6}
+										className="px-6 py-12 text-center text-gray-500"
+									>
 										No coupons yet. Click "Create Coupon" to add one.
 									</td>
 								</tr>
@@ -241,9 +246,7 @@ export default function AdminCouponsPage() {
 											: `₹${coupon.discountValue}`}
 									</td>
 									<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
-										{coupon.minOrderAmount
-											? `₹${coupon.minOrderAmount}`
-											: "-"}
+										{coupon.minOrderAmount ? `₹${coupon.minOrderAmount}` : "-"}
 									</td>
 									<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-700">
 										{coupon.usedCount}
@@ -285,12 +288,21 @@ export default function AdminCouponsPage() {
 
 						<form onSubmit={handleSubmit} className="space-y-4">
 							<div>
-								<label className="block text-sm font-medium text-gray-700">Code</label>
+								<label
+									htmlFor="coupon-code"
+									className="block text-sm font-medium text-gray-700"
+								>
+									Code
+								</label>
 								<input
+									id="coupon-code"
 									required
 									value={formData.code}
 									onChange={(e) =>
-										setFormData({ ...formData, code: e.target.value.toUpperCase() })
+										setFormData({
+											...formData,
+											code: e.target.value.toUpperCase(),
+										})
 									}
 									className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
 								/>
@@ -298,11 +310,14 @@ export default function AdminCouponsPage() {
 
 							<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 								<div>
-									<label className="block text-sm font-medium text-gray-700">
+									<label
+										htmlFor="coupon-discount-type"
+										className="block text-sm font-medium text-gray-700"
+									>
 										Discount Type
 									</label>
 									<select
-										value={formData.discountType}
+										id="coupon-discount-type"
 										onChange={(e) =>
 											setFormData({
 												...formData,
@@ -316,10 +331,14 @@ export default function AdminCouponsPage() {
 									</select>
 								</div>
 								<div>
-									<label className="block text-sm font-medium text-gray-700">
+									<label
+										htmlFor="coupon-discount-value"
+										className="block text-sm font-medium text-gray-700"
+									>
 										Discount Value
 									</label>
 									<input
+										id="coupon-discount-value"
 										type="number"
 										required
 										min={1}
@@ -337,24 +356,35 @@ export default function AdminCouponsPage() {
 
 							<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 								<div>
-									<label className="block text-sm font-medium text-gray-700">
+									<label
+										htmlFor="coupon-min-order"
+										className="block text-sm font-medium text-gray-700"
+									>
 										Minimum Order Amount
 									</label>
 									<input
+										id="coupon-min-order"
 										type="number"
 										min={0}
 										value={formData.minOrderAmount}
 										onChange={(e) =>
-											setFormData({ ...formData, minOrderAmount: e.target.value })
+											setFormData({
+												...formData,
+												minOrderAmount: e.target.value,
+											})
 										}
 										className="mt-1 block w-full px-3 py-2 border border-gray-300 rounded-md"
 									/>
 								</div>
 								<div>
-									<label className="block text-sm font-medium text-gray-700">
+									<label
+										htmlFor="coupon-max-discount"
+										className="block text-sm font-medium text-gray-700"
+									>
 										Maximum Discount
 									</label>
 									<input
+										id="coupon-max-discount"
 										type="number"
 										min={0}
 										value={formData.maxDiscountAmount}
@@ -370,10 +400,14 @@ export default function AdminCouponsPage() {
 							</div>
 
 							<div>
-								<label className="block text-sm font-medium text-gray-700">
+								<label
+									htmlFor="coupon-products"
+									className="block text-sm font-medium text-gray-700"
+								>
 									Applicable Products (optional)
 								</label>
 								<select
+									id="coupon-products"
 									multiple
 									value={formData.applicableProducts}
 									onChange={(e) => {
@@ -393,11 +427,19 @@ export default function AdminCouponsPage() {
 							</div>
 
 							<div className="flex justify-end gap-3">
-								<Button type="button" variant="outline" onClick={() => setShowModal(false)}>
+								<Button
+									type="button"
+									variant="outline"
+									onClick={() => setShowModal(false)}
+								>
 									Cancel
 								</Button>
 								<Button type="submit" disabled={saving}>
-									{saving ? "Saving..." : editingCoupon ? "Update Coupon" : "Create Coupon"}
+									{saving
+										? "Saving..."
+										: editingCoupon
+											? "Update Coupon"
+											: "Create Coupon"}
 								</Button>
 							</div>
 						</form>

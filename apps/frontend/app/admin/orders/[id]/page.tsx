@@ -1,10 +1,11 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { useEffect, useState, use } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { CheckCircle2, Circle, XCircle } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { use, useCallback, useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -42,7 +43,13 @@ interface Order {
 	couponCode?: string;
 	totalAmount: number;
 	address: Address;
-	status: "PENDING" | "PLACED" | "PACKED" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+	status:
+		| "PENDING"
+		| "PLACED"
+		| "PACKED"
+		| "SHIPPED"
+		| "DELIVERED"
+		| "CANCELLED";
 	paymentMethod: "ONLINE" | "COD";
 	paymentStatus: "PENDING" | "PAID" | "FAILED";
 	razorpayOrderId?: string;
@@ -72,7 +79,7 @@ export default function AdminOrderDetailPage({ params }: OrderDetailProps) {
 	const [selectedStatus, setSelectedStatus] = useState<string>("");
 	const router = useRouter();
 
-	const fetchOrder = async () => {
+	const fetchOrder = useCallback(async () => {
 		try {
 			const res = await fetch(`${API_URL}/api/admin/orders/${id}`, {
 				credentials: "include",
@@ -94,11 +101,11 @@ export default function AdminOrderDetailPage({ params }: OrderDetailProps) {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, [id, router]);
 
 	useEffect(() => {
 		fetchOrder();
-	}, [id, router]);
+	}, [fetchOrder]);
 
 	const handleUpdateStatus = async () => {
 		if (!order || selectedStatus === order.status) return;
@@ -117,15 +124,12 @@ export default function AdminOrderDetailPage({ params }: OrderDetailProps) {
 
 		setUpdating(true);
 		try {
-			const res = await fetch(
-				`${API_URL}/api/admin/orders/${id}/status`,
-				{
-					method: "PATCH",
-					headers: { "Content-Type": "application/json" },
-					credentials: "include",
-					body: JSON.stringify({ status: selectedStatus }),
-				},
-			);
+			const res = await fetch(`${API_URL}/api/admin/orders/${id}/status`, {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				credentials: "include",
+				body: JSON.stringify({ status: selectedStatus }),
+			});
 
 			if (!res.ok) throw new Error("Failed to update status");
 
@@ -159,12 +163,14 @@ export default function AdminOrderDetailPage({ params }: OrderDetailProps) {
 						<div className="bg-white rounded-lg border border-gray-200 p-6 space-y-4">
 							<div className="h-5 bg-gray-200 rounded w-40" />
 							<div className="grid grid-cols-2 gap-4">
-								{Array.from({ length: 6 }).map((_, i) => (
-									<div key={i} className="space-y-1">
-										<div className="h-3 bg-gray-200 rounded w-20" />
-										<div className="h-4 bg-gray-200 rounded w-32" />
-									</div>
-								))}
+								{["name", "phone", "address", "city", "state", "pincode"].map(
+									(field) => (
+										<div key={`skeleton-field-${field}`} className="space-y-1">
+											<div className="h-3 bg-gray-200 rounded w-20" />
+											<div className="h-4 bg-gray-200 rounded w-32" />
+										</div>
+									),
+								)}
 							</div>
 						</div>
 						<div className="bg-white rounded-lg border border-gray-200 p-6 space-y-3">
@@ -223,35 +229,46 @@ export default function AdminOrderDetailPage({ params }: OrderDetailProps) {
 					<XCircle className="h-6 w-6 text-red-500 shrink-0" />
 					<div>
 						<p className="font-semibold text-red-700">Order Cancelled</p>
-						<p className="text-sm text-red-600">This order was cancelled by the customer.</p>
+						<p className="text-sm text-red-600">
+							This order was cancelled by the customer.
+						</p>
 					</div>
 				</div>
 			) : (
 				<div className="bg-white rounded-lg border border-gray-200 p-6">
-					<h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Order Progress</h2>
+					<h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">
+						Order Progress
+					</h2>
 					<div className="flex items-center justify-between">
-						{(["PLACED", "PACKED", "SHIPPED", "DELIVERED"] as const).map((step, i, arr) => {
-							const steps = ["PLACED", "PACKED", "SHIPPED", "DELIVERED"];
-							const currentIdx = steps.indexOf(order.status);
-							const stepIdx = steps.indexOf(step);
-							const isDone = stepIdx <= currentIdx;
-							return (
-								<div key={step} className="flex items-center flex-1">
-									<div className="flex flex-col items-center gap-1">
-										{isDone
-											? <CheckCircle2 className="h-6 w-6 text-green-600" />
-											: <Circle className="h-6 w-6 text-gray-300" />
-										}
-										<span className={`text-xs font-medium ${isDone ? "text-green-700" : "text-gray-400"}`}>
-											{step}
-										</span>
+						{(["PLACED", "PACKED", "SHIPPED", "DELIVERED"] as const).map(
+							(step, i, arr) => {
+								const steps = ["PLACED", "PACKED", "SHIPPED", "DELIVERED"];
+								const currentIdx = steps.indexOf(order.status);
+								const stepIdx = steps.indexOf(step);
+								const isDone = stepIdx <= currentIdx;
+								return (
+									<div key={step} className="flex items-center flex-1">
+										<div className="flex flex-col items-center gap-1">
+											{isDone ? (
+												<CheckCircle2 className="h-6 w-6 text-green-600" />
+											) : (
+												<Circle className="h-6 w-6 text-gray-300" />
+											)}
+											<span
+												className={`text-xs font-medium ${isDone ? "text-green-700" : "text-gray-400"}`}
+											>
+												{step}
+											</span>
+										</div>
+										{i < arr.length - 1 && (
+											<div
+												className={`flex-1 h-0.5 mx-2 ${stepIdx < currentIdx ? "bg-green-400" : "bg-gray-200"}`}
+											/>
+										)}
 									</div>
-									{i < arr.length - 1 && (
-										<div className={`flex-1 h-0.5 mx-2 ${stepIdx < currentIdx ? "bg-green-400" : "bg-gray-200"}`} />
-									)}
-								</div>
-							);
-						})}
+								);
+							},
+						)}
 					</div>
 				</div>
 			)}
@@ -345,15 +362,17 @@ export default function AdminOrderDetailPage({ params }: OrderDetailProps) {
 					<div className="bg-white rounded-lg border border-gray-200 p-6">
 						<h2 className="text-lg font-semibold mb-4">Order Items</h2>
 						<div className="space-y-4">
-							{order.items.map((item, index) => (
+							{order.items.map((item, _index) => (
 								<div
-									key={index}
+									key={`${item.productId}-${item.variantLabel}`}
 									className="flex items-center gap-4 pb-4 border-b last:border-b-0 last:pb-0"
 								>
 									{item.image && (
-										<img
+										<Image
 											src={item.image}
 											alt={item.name}
+											width={64}
+											height={64}
 											className="w-16 h-16 rounded object-cover"
 										/>
 									)}
@@ -378,7 +397,9 @@ export default function AdminOrderDetailPage({ params }: OrderDetailProps) {
 						<div className="mt-4 pt-4 border-t space-y-2">
 							<div className="flex justify-between text-sm">
 								<span className="text-gray-500">Subtotal</span>
-								<span>₹{(order.subtotalAmount ?? itemsSubtotal).toLocaleString()}</span>
+								<span>
+									₹{(order.subtotalAmount ?? itemsSubtotal).toLocaleString()}
+								</span>
 							</div>
 							<div className="flex justify-between text-sm">
 								<span className="text-gray-500">Delivery</span>
@@ -386,7 +407,10 @@ export default function AdminOrderDetailPage({ params }: OrderDetailProps) {
 							</div>
 							{(order.discountAmount ?? 0) > 0 && (
 								<div className="flex justify-between text-sm text-green-700">
-									<span>Coupon {order.couponCode ? `(${order.couponCode})` : "Discount"}</span>
+									<span>
+										Coupon{" "}
+										{order.couponCode ? `(${order.couponCode})` : "Discount"}
+									</span>
 									<span>−₹{order.discountAmount.toLocaleString()}</span>
 								</div>
 							)}
@@ -414,19 +438,23 @@ export default function AdminOrderDetailPage({ params }: OrderDetailProps) {
 									id="status"
 									value={selectedStatus}
 									onChange={(e) => setSelectedStatus(e.target.value)}
-								disabled={order.status === "CANCELLED" || order.status === "DELIVERED"}
-								className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
-							>
-								<option value="PLACED">PLACED</option>
-								<option value="PACKED">PACKED</option>
-								<option value="SHIPPED">SHIPPED</option>
-								<option value="DELIVERED">DELIVERED</option>
-							</select>
-							{(order.status === "CANCELLED" || order.status === "DELIVERED") && (
-								<p className="text-xs text-gray-500 mt-1">
-									Status cannot be changed for {order.status.toLowerCase()} orders.
-								</p>
-							)}
+									disabled={
+										order.status === "CANCELLED" || order.status === "DELIVERED"
+									}
+									className="w-full px-3 py-2 border border-gray-300 rounded-md shadow-sm focus:outline-none focus:ring-green-500 focus:border-green-500 disabled:bg-gray-100 disabled:cursor-not-allowed"
+								>
+									<option value="PLACED">PLACED</option>
+									<option value="PACKED">PACKED</option>
+									<option value="SHIPPED">SHIPPED</option>
+									<option value="DELIVERED">DELIVERED</option>
+								</select>
+								{(order.status === "CANCELLED" ||
+									order.status === "DELIVERED") && (
+									<p className="text-xs text-gray-500 mt-1">
+										Status cannot be changed for {order.status.toLowerCase()}{" "}
+										orders.
+									</p>
+								)}
 							</div>
 
 							{order.paymentStatus !== "PAID" &&

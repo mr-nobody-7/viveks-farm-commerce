@@ -1,9 +1,9 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { AdminTableSkeleton } from "@/components/Skeletons";
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
+import { AdminTableSkeleton } from "@/components/Skeletons";
+import { Button } from "@/components/ui/button";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -19,13 +19,11 @@ export default function AdminCategoriesPage() {
 	const [categories, setCategories] = useState<Category[]>([]);
 	const [loading, setLoading] = useState(true);
 	const [showModal, setShowModal] = useState(false);
-	const [editingCategory, setEditingCategory] = useState<Category | null>(
-		null,
-	);
+	const [editingCategory, setEditingCategory] = useState<Category | null>(null);
 	const [formData, setFormData] = useState({ name: "", description: "" });
 	const router = useRouter();
 
-	const fetchCategories = async () => {
+	const fetchCategories = useCallback(async () => {
 		try {
 			const res = await fetch(`${API_URL}/api/admin/categories`, {
 				credentials: "include",
@@ -46,11 +44,11 @@ export default function AdminCategoriesPage() {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, [router]);
 
 	useEffect(() => {
 		fetchCategories();
-	}, [router]);
+	}, [fetchCategories]);
 
 	const handleOpenModal = (category?: Category) => {
 		if (category) {
@@ -96,15 +94,12 @@ export default function AdminCategoriesPage() {
 
 	const handleToggleActive = async (categoryId: string, isActive: boolean) => {
 		try {
-			const res = await fetch(
-				`${API_URL}/api/admin/categories/${categoryId}`,
-				{
-					method: "PATCH",
-					headers: { "Content-Type": "application/json" },
-					credentials: "include",
-					body: JSON.stringify({ isActive: !isActive }),
-				},
-			);
+			const res = await fetch(`${API_URL}/api/admin/categories/${categoryId}`, {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				credentials: "include",
+				body: JSON.stringify({ isActive: !isActive }),
+			});
 
 			if (!res.ok) throw new Error("Failed to update category");
 
@@ -129,81 +124,84 @@ export default function AdminCategoriesPage() {
 			{/* Categories Table */}
 			<div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
 				<div className="overflow-x-auto">
-					<table className="min-w-[900px] divide-y divide-gray-200">
-					<thead className="bg-gray-50">
-						<tr>
-							<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-								Name
-							</th>
-							<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-								Description
-							</th>
-							<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-								Route
-							</th>
-							<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-								Status
-							</th>
-							<th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-								Actions
-							</th>
-						</tr>
-					</thead>
-					<tbody className="bg-white divide-y divide-gray-200">
-						{categories.length === 0 && (
+					<table className="min-w-225 divide-y divide-gray-200">
+						<thead className="bg-gray-50">
 							<tr>
-								<td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-									No categories yet. Click "Add Category" to create one.
-								</td>
+								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+									Name
+								</th>
+								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+									Description
+								</th>
+								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+									Route
+								</th>
+								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+									Status
+								</th>
+								<th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+									Actions
+								</th>
 							</tr>
-						)}
-						{categories.map((category) => (
-							<tr key={category._id}>
-								<td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-									{category.name}
-								</td>
-								<td className="px-6 py-4 text-sm text-gray-500">
-									{category.description}
-								</td>
-								<td className="px-6 py-4 whitespace-nowrap text-xs font-mono text-gray-500">
-									/shop/{category.slug}
-								</td>
-								<td className="px-6 py-4 whitespace-nowrap">
-									<span
-										className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-											category.isActive
-												? "bg-green-100 text-green-800"
-												: "bg-red-100 text-red-800"
-										}`}
+						</thead>
+						<tbody className="bg-white divide-y divide-gray-200">
+							{categories.length === 0 && (
+								<tr>
+									<td
+										colSpan={5}
+										className="px-6 py-12 text-center text-gray-500"
 									>
-										{category.isActive ? "Active" : "Disabled"}
-									</span>
-								</td>
-								<td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
-									<button
-										type="button"
-										onClick={() => handleOpenModal(category)}
-										className="text-blue-600 hover:text-blue-900"
-									>
-										Edit
-									</button>
-									<button
-										type="button"
-										onClick={() =>
-											handleToggleActive(category._id, category.isActive)
-										}
-										className={
-											category.isActive
-												? "text-red-600 hover:text-red-900"
-												: "text-green-600 hover:text-green-900"
-										}
-									>
-										{category.isActive ? "Disable" : "Enable"}
-									</button>
-								</td>
-							</tr>
-						))}
-					</tbody>
+										No categories yet. Click "Add Category" to create one.
+									</td>
+								</tr>
+							)}
+							{categories.map((category) => (
+								<tr key={category._id}>
+									<td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+										{category.name}
+									</td>
+									<td className="px-6 py-4 text-sm text-gray-500">
+										{category.description}
+									</td>
+									<td className="px-6 py-4 whitespace-nowrap text-xs font-mono text-gray-500">
+										/shop/{category.slug}
+									</td>
+									<td className="px-6 py-4 whitespace-nowrap">
+										<span
+											className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+												category.isActive
+													? "bg-green-100 text-green-800"
+													: "bg-red-100 text-red-800"
+											}`}
+										>
+											{category.isActive ? "Active" : "Disabled"}
+										</span>
+									</td>
+									<td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium space-x-2">
+										<button
+											type="button"
+											onClick={() => handleOpenModal(category)}
+											className="text-blue-600 hover:text-blue-900"
+										>
+											Edit
+										</button>
+										<button
+											type="button"
+											onClick={() =>
+												handleToggleActive(category._id, category.isActive)
+											}
+											className={
+												category.isActive
+													? "text-red-600 hover:text-red-900"
+													: "text-green-600 hover:text-green-900"
+											}
+										>
+											{category.isActive ? "Disable" : "Enable"}
+										</button>
+									</td>
+								</tr>
+							))}
+						</tbody>
 					</table>
 				</div>
 			</div>

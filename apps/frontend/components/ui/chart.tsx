@@ -93,25 +93,35 @@ export function ChartTooltipContent({
 				className,
 			)}
 		>
-			{label ? <p className="mb-2 text-xs text-muted-foreground">{label}</p> : null}
+			{label ? (
+				<p className="mb-2 text-xs text-muted-foreground">{label}</p>
+			) : null}
 			<div className="space-y-1.5">
 				{payload.map((item) => {
 					const key = item.dataKey || item.name || "value";
 					const configItem = config[key];
 					const value = Number(item.value || 0);
 					const displayValue = formatter ? formatter(value, item) : value;
-					const color = configItem?.color || item.color || item.payload?.fill || "#8884d8";
+					const color =
+						configItem?.color || item.color || item.payload?.fill || "#8884d8";
 
 					return (
-						<div key={`${key}-${item.name}`} className="flex items-center justify-between gap-3 text-xs">
+						<div
+							key={`${key}-${item.name}`}
+							className="flex items-center justify-between gap-3 text-xs"
+						>
 							<div className="flex items-center gap-2">
 								<span
 									className="h-2 w-2 rounded-full"
 									style={{ backgroundColor: color }}
 								/>
-								<span className="text-muted-foreground">{configItem?.label || item.name || key}</span>
+								<span className="text-muted-foreground">
+									{configItem?.label || item.name || key}
+								</span>
 							</div>
-							<span className="font-medium text-foreground">{displayValue}</span>
+							<span className="font-medium text-foreground">
+								{displayValue}
+							</span>
 						</div>
 					);
 				})}

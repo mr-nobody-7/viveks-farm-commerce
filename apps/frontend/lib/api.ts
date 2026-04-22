@@ -1,9 +1,6 @@
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
-const requestJson = async <T>(
-	path: string,
-	init?: RequestInit,
-): Promise<T> => {
+const requestJson = async <T>(path: string, init?: RequestInit): Promise<T> => {
 	if (!API_URL) {
 		throw new Error("NEXT_PUBLIC_API_URL is not configured");
 	}
@@ -77,23 +74,31 @@ export const api = {
 	},
 
 	// Auth endpoints
-	async requestOTP(mobile: string): Promise<{ message: string; devOtp?: string }> {
-		return requestJson<{ message: string; devOtp?: string }>("/api/auth/request-otp", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			body: JSON.stringify({ mobile }),
-		});
+	async requestOTP(
+		mobile: string,
+	): Promise<{ message: string; devOtp?: string }> {
+		return requestJson<{ message: string; devOtp?: string }>(
+			"/api/auth/request-otp",
+			{
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				body: JSON.stringify({ mobile }),
+			},
+		);
 	},
 
 	async verifyOTP(
 		mobile: string,
 		otp: string,
-	): Promise<{ message: string; user: any }> {
-		return requestJson<{ message: string; user: any }>("/api/auth/verify-otp", {
-			method: "POST",
-			headers: { "Content-Type": "application/json" },
-			credentials: "include",
-			body: JSON.stringify({ mobile, otp }),
-		});
+	): Promise<{ message: string; user: Record<string, unknown> }> {
+		return requestJson<{ message: string; user: Record<string, unknown> }>(
+			"/api/auth/verify-otp",
+			{
+				method: "POST",
+				headers: { "Content-Type": "application/json" },
+				credentials: "include",
+				body: JSON.stringify({ mobile, otp }),
+			},
+		);
 	},
 };

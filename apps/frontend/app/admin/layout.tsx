@@ -8,7 +8,9 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 export default function AdminLayout({
 	children,
-}: { children: React.ReactNode }) {
+}: {
+	children: React.ReactNode;
+}) {
 	const pathname = usePathname();
 	const router = useRouter();
 
@@ -35,6 +37,7 @@ export default function AdminLayout({
 			path: "/admin/dashboard",
 			icon: (
 				<svg
+					aria-hidden="true"
 					className="w-5 h-5"
 					fill="none"
 					stroke="currentColor"
@@ -54,6 +57,7 @@ export default function AdminLayout({
 			path: "/admin/orders",
 			icon: (
 				<svg
+					aria-hidden="true"
 					className="w-5 h-5"
 					fill="none"
 					stroke="currentColor"
@@ -73,6 +77,7 @@ export default function AdminLayout({
 			path: "/admin/categories",
 			icon: (
 				<svg
+					aria-hidden="true"
 					className="w-5 h-5"
 					fill="none"
 					stroke="currentColor"
@@ -92,6 +97,7 @@ export default function AdminLayout({
 			path: "/admin/products",
 			icon: (
 				<svg
+					aria-hidden="true"
 					className="w-5 h-5"
 					fill="none"
 					stroke="currentColor"
@@ -111,6 +117,7 @@ export default function AdminLayout({
 			path: "/admin/coupons",
 			icon: (
 				<svg
+					aria-hidden="true"
 					className="w-5 h-5"
 					fill="none"
 					stroke="currentColor"
@@ -164,51 +171,50 @@ export default function AdminLayout({
 
 			<div className="lg:flex min-h-[calc(100vh-109px)] lg:min-h-screen">
 				<aside className="hidden lg:block w-64 bg-white border-r border-gray-200">
-				<div className="p-6">
-					<h2 className="text-2xl font-bold text-green-600">
-						Vivek's Farm
-					</h2>
-					<p className="text-sm text-gray-600 mt-1">Admin Panel</p>
-				</div>
+					<div className="p-6">
+						<h2 className="text-2xl font-bold text-green-600">Vivek's Farm</h2>
+						<p className="text-sm text-gray-600 mt-1">Admin Panel</p>
+					</div>
 
-				<nav className="px-3 space-y-1">
-					{navItems.map((item) => (
-						<Link
-							key={item.path}
-							href={item.path}
-							className={cn(
-								"flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
-								pathname === item.path
-									? "bg-green-50 text-green-700"
-									: "text-gray-700 hover:bg-gray-50",
-							)}
-						>
-							{item.icon}
-							{item.name}
-						</Link>
-					))}
+					<nav className="px-3 space-y-1">
+						{navItems.map((item) => (
+							<Link
+								key={item.path}
+								href={item.path}
+								className={cn(
+									"flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium transition-colors",
+									pathname === item.path
+										? "bg-green-50 text-green-700"
+										: "text-gray-700 hover:bg-gray-50",
+								)}
+							>
+								{item.icon}
+								{item.name}
+							</Link>
+						))}
 
-					<button
-						type="button"
-						onClick={handleLogout}
-						className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
-					>
-						<svg
-							className="w-5 h-5"
-							fill="none"
-							stroke="currentColor"
-							viewBox="0 0 24 24"
+						<button
+							type="button"
+							onClick={handleLogout}
+							className="w-full flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-red-600 hover:bg-red-50 transition-colors"
 						>
-							<path
-								strokeLinecap="round"
-								strokeLinejoin="round"
-								strokeWidth={2}
-								d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
-							/>
-						</svg>
-						Logout
-					</button>
-				</nav>
+							<svg
+								aria-hidden="true"
+								className="w-5 h-5"
+								fill="none"
+								stroke="currentColor"
+								viewBox="0 0 24 24"
+							>
+								<path
+									strokeLinecap="round"
+									strokeLinejoin="round"
+									strokeWidth={2}
+									d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"
+								/>
+							</svg>
+							Logout
+						</button>
+					</nav>
 				</aside>
 
 				<main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>

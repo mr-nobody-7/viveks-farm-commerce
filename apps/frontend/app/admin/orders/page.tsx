@@ -1,9 +1,9 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { useRouter } from "next/navigation";
-import Link from "next/link";
 import { Package } from "lucide-react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import { OrderCardSkeleton } from "@/components/Skeletons";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
@@ -25,20 +25,32 @@ interface Order {
 	discountAmount: number;
 	couponCode?: string;
 	totalAmount: number;
-	status: "PENDING" | "PLACED" | "PACKED" | "SHIPPED" | "DELIVERED" | "CANCELLED";
+	status:
+		| "PENDING"
+		| "PLACED"
+		| "PACKED"
+		| "SHIPPED"
+		| "DELIVERED"
+		| "CANCELLED";
 	paymentMethod: "ONLINE" | "COD";
 	paymentStatus: "PENDING" | "PAID" | "FAILED";
 	createdAt: string;
 	updatedAt: string;
 }
 
-const orderStatusColors = {
+const orderStatusColors: Record<string, string> = {
 	PENDING: "bg-gray-100 text-gray-800",
 	PLACED: "bg-blue-100 text-blue-800",
 	PACKED: "bg-orange-100 text-orange-800",
 	SHIPPED: "bg-purple-100 text-purple-800",
 	DELIVERED: "bg-green-100 text-green-800",
 	CANCELLED: "bg-red-100 text-red-800",
+};
+
+const paymentStatusColors: Record<string, string> = {
+	PENDING: "bg-yellow-100 text-yellow-800",
+	PAID: "bg-green-100 text-green-800",
+	FAILED: "bg-red-100 text-red-800",
 };
 
 export default function AdminOrdersPage() {
@@ -49,7 +61,13 @@ export default function AdminOrdersPage() {
 	>("ALL");
 	const [searchQuery, setSearchQuery] = useState("");
 	const [statusFilter, setStatusFilter] = useState<
-		"ALL" | "PENDING" | "PLACED" | "PACKED" | "SHIPPED" | "DELIVERED" | "CANCELLED"
+		| "ALL"
+		| "PENDING"
+		| "PLACED"
+		| "PACKED"
+		| "SHIPPED"
+		| "DELIVERED"
+		| "CANCELLED"
 	>("ALL");
 	const [paymentMethodFilter, setPaymentMethodFilter] = useState<
 		"ALL" | "ONLINE" | "COD"
@@ -65,7 +83,7 @@ export default function AdminOrdersPage() {
 	const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
 	const router = useRouter();
 
-	const fetchOrders = async () => {
+	const fetchOrders = useCallback(async () => {
 		try {
 			const res = await fetch(`${API_URL}/api/admin/orders`, {
 				credentials: "include",
@@ -86,11 +104,11 @@ export default function AdminOrdersPage() {
 		} finally {
 			setLoading(false);
 		}
-	};
+	}, [router]);
 
 	useEffect(() => {
 		fetchOrders();
-	}, [router]);
+	}, [fetchOrders]);
 
 	const formatDate = (dateString: string) => {
 		return new Date(dateString).toLocaleDateString("en-IN", {
@@ -102,7 +120,8 @@ export default function AdminOrdersPage() {
 		});
 	};
 
-	const formatCurrency = (amount: number) => `Rs.${amount.toLocaleString("en-IN")}`;
+	const formatCurrency = (amount: number) =>
+		`Rs.${amount.toLocaleString("en-IN")}`;
 
 	const getItemsCount = (order: Order) =>
 		order.items.reduce((sum, item) => sum + item.quantity, 0);
@@ -132,12 +151,15 @@ export default function AdminOrdersPage() {
 		setUpdatingOrderId(order._id);
 
 		try {
-			const res = await fetch(`${API_URL}/api/admin/orders/${order._id}/status`, {
-				method: "PATCH",
-				headers: { "Content-Type": "application/json" },
-				credentials: "include",
-				body: JSON.stringify({ status: nextStatus }),
-			});
+			const res = await fetch(
+				`${API_URL}/api/admin/orders/${order._id}/status`,
+				{
+					method: "PATCH",
+					headers: { "Content-Type": "application/json" },
+					credentials: "include",
+					body: JSON.stringify({ status: nextStatus }),
+				},
+			);
 
 			if (!res.ok) {
 				throw new Error("Failed to update order status");
@@ -146,7 +168,11 @@ export default function AdminOrdersPage() {
 			setOrders((prevOrders) =>
 				prevOrders.map((currentOrder) =>
 					currentOrder._id === order._id
-						? { ...currentOrder, status: nextStatus, updatedAt: new Date().toISOString() }
+						? {
+								...currentOrder,
+								status: nextStatus,
+								updatedAt: new Date().toISOString(),
+							}
 						: currentOrder,
 				),
 			);
@@ -177,9 +203,12 @@ export default function AdminOrdersPage() {
 	const successfulOrders = orders.filter(
 		(order) => order.paymentMethod === "COD" || order.paymentStatus === "PAID",
 	);
-	const failedOrders = orders.filter((order) => order.paymentStatus === "FAILED");
+	const failedOrders = orders.filter(
+		(order) => order.paymentStatus === "FAILED",
+	);
 	const pendingPaymentOrders = orders.filter(
-		(order) => order.paymentMethod === "ONLINE" && order.paymentStatus === "PENDING",
+		(order) =>
+			order.paymentMethod === "ONLINE" && order.paymentStatus === "PENDING",
 	);
 
 	const baseOrders =
@@ -200,11 +229,14 @@ export default function AdminOrdersPage() {
 			order.user.mobile.toLowerCase().includes(query) ||
 			(order.couponCode || "").toLowerCase().includes(query);
 
-		const matchesStatus = statusFilter === "ALL" || order.status === statusFilter;
+		const matchesStatus =
+			statusFilter === "ALL" || order.status === statusFilter;
 		const matchesPaymentMethod =
-			paymentMethodFilter === "ALL" || order.paymentMethod === paymentMethodFilter;
+			paymentMethodFilter === "ALL" ||
+			order.paymentMethod === paymentMethodFilter;
 		const matchesPaymentStatus =
-			paymentStatusFilter === "ALL" || order.paymentStatus === paymentStatusFilter;
+			paymentStatusFilter === "ALL" ||
+			order.paymentStatus === paymentStatusFilter;
 
 		const orderDate = new Date(order.createdAt);
 		const fromDate = dateFrom ? new Date(`${dateFrom}T00:00:00`) : null;
@@ -401,7 +433,9 @@ export default function AdminOrdersPage() {
 			{displayedOrders.length === 0 ? (
 				<div className="bg-white rounded-lg border border-gray-200 p-12 text-center space-y-4">
 					<Package className="h-16 w-16 mx-auto text-gray-400" />
-					<h3 className="text-xl font-semibold text-gray-700">No orders in this section</h3>
+					<h3 className="text-xl font-semibold text-gray-700">
+						No orders in this section
+					</h3>
 					<p className="text-gray-500">
 						Switch tabs to review other order groups.
 					</p>
@@ -410,155 +444,163 @@ export default function AdminOrdersPage() {
 				<div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
 					<div className="overflow-x-auto">
 						<table className="min-w-400 divide-y divide-gray-200">
-						<thead className="bg-gray-50">
-							<tr>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-									Order ID
-								</th>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-									Date
-								</th>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-									Customer
-								</th>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-									Mobile
-								</th>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-									Items
-								</th>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-									Subtotal
-								</th>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-									Discount
-								</th>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-									Delivery
-								</th>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-									Total
-								</th>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-									Coupon
-								</th>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-									Payment
-								</th>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-									Payment Status
-								</th>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-									Order Status
-								</th>
-								<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-									Updated
-								</th>
-								<th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
-									Actions
-								</th>
-							</tr>
-						</thead>
-						<tbody className="bg-white divide-y divide-gray-200">
-							{displayedOrders.length === 0 ? (
+							<thead className="bg-gray-50">
 								<tr>
-									<td
-										colSpan={15}
-										className="px-6 py-12 text-center text-gray-500"
-									>
-										No orders found
-									</td>
+									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+										Order ID
+									</th>
+									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+										Date
+									</th>
+									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+										Customer
+									</th>
+									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+										Mobile
+									</th>
+									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+										Items
+									</th>
+									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+										Subtotal
+									</th>
+									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+										Discount
+									</th>
+									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+										Delivery
+									</th>
+									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+										Total
+									</th>
+									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+										Coupon
+									</th>
+									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+										Payment
+									</th>
+									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+										Payment Status
+									</th>
+									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+										Order Status
+									</th>
+									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+										Updated
+									</th>
+									<th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">
+										Actions
+									</th>
 								</tr>
-							) : (
-								displayedOrders.map((order) => (
-									<tr key={order._id} className="hover:bg-gray-50">
-										<td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
-											#{order._id.slice(-8).toUpperCase()}
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-											{formatDate(order.createdAt)}
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-											{order.user.name || "Guest"}
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-											{order.user.mobile}
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-											{getItemsCount(order)}
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-											{formatCurrency(order.subtotalAmount || 0)}
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-green-700">
-											-{formatCurrency(order.discountAmount || 0)}
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-											{formatCurrency(order.deliveryCharge || 0)}
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
-											{formatCurrency(order.totalAmount)}
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-											{order.couponCode || "-"}
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-											{order.paymentMethod}
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap">
-											<span
-												className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-													paymentStatusColors[order.paymentStatus]
-												}`}
-											>
-												{order.paymentStatus}
-											</span>
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap">
-											<span
-												className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
-													orderStatusColors[order.status]
-												}`}
-											>
-												{order.status}
-											</span>
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
-											{formatDate(order.updatedAt || order.createdAt)}
-										</td>
-										<td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
-											<select
-												value={order.status}
-												onChange={(e) =>
-													handleQuickStatusUpdate(
-														order,
-														e.target.value as Order["status"],
-													)
-												}
-											disabled={updatingOrderId === order._id || order.status === "CANCELLED" || order.status === "DELIVERED"}
-											className="mr-3 px-2 py-1 border border-gray-300 rounded text-xs disabled:bg-gray-100 disabled:cursor-not-allowed"
+							</thead>
+							<tbody className="bg-white divide-y divide-gray-200">
+								{displayedOrders.length === 0 ? (
+									<tr>
+										<td
+											colSpan={15}
+											className="px-6 py-12 text-center text-gray-500"
 										>
-											<option value="PLACED">PLACED</option>
-											<option value="PACKED">PACKED</option>
-											<option value="SHIPPED">SHIPPED</option>
-											<option value="DELIVERED">DELIVERED</option>
-											{order.status === "CANCELLED" && <option value="CANCELLED">CANCELLED</option>}
-											{order.status === "PENDING" && <option value="PENDING">PENDING</option>}
-											</select>
-											<Link
-												href={`/admin/orders/${order._id}`}
-												className="text-blue-600 hover:text-blue-900"
-											>
-												View
-											</Link>
+											No orders found
 										</td>
 									</tr>
-								))
-							)}
-						</tbody>
-					</table>
+								) : (
+									displayedOrders.map((order) => (
+										<tr key={order._id} className="hover:bg-gray-50">
+											<td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
+												#{order._id.slice(-8).toUpperCase()}
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+												{formatDate(order.createdAt)}
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+												{order.user.name || "Guest"}
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+												{order.user.mobile}
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+												{getItemsCount(order)}
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+												{formatCurrency(order.subtotalAmount || 0)}
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap text-sm text-green-700">
+												-{formatCurrency(order.discountAmount || 0)}
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+												{formatCurrency(order.deliveryCharge || 0)}
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">
+												{formatCurrency(order.totalAmount)}
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+												{order.couponCode || "-"}
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+												{order.paymentMethod}
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap">
+												<span
+													className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+														paymentStatusColors[order.paymentStatus]
+													}`}
+												>
+													{order.paymentStatus}
+												</span>
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap">
+												<span
+													className={`px-2 py-1 inline-flex text-xs leading-5 font-semibold rounded-full ${
+														orderStatusColors[order.status]
+													}`}
+												>
+													{order.status}
+												</span>
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+												{formatDate(order.updatedAt || order.createdAt)}
+											</td>
+											<td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+												<select
+													value={order.status}
+													onChange={(e) =>
+														handleQuickStatusUpdate(
+															order,
+															e.target.value as Order["status"],
+														)
+													}
+													disabled={
+														updatingOrderId === order._id ||
+														order.status === "CANCELLED" ||
+														order.status === "DELIVERED"
+													}
+													className="mr-3 px-2 py-1 border border-gray-300 rounded text-xs disabled:bg-gray-100 disabled:cursor-not-allowed"
+												>
+													<option value="PLACED">PLACED</option>
+													<option value="PACKED">PACKED</option>
+													<option value="SHIPPED">SHIPPED</option>
+													<option value="DELIVERED">DELIVERED</option>
+													{order.status === "CANCELLED" && (
+														<option value="CANCELLED">CANCELLED</option>
+													)}
+													{order.status === "PENDING" && (
+														<option value="PENDING">PENDING</option>
+													)}
+												</select>
+												<Link
+													href={`/admin/orders/${order._id}`}
+													className="text-blue-600 hover:text-blue-900"
+												>
+													View
+												</Link>
+											</td>
+										</tr>
+									))
+								)}
+							</tbody>
+						</table>
+					</div>
 				</div>
-			</div>
 			)}
 		</div>
 	);

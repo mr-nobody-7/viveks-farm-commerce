@@ -1,21 +1,27 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { Package } from "lucide-react";
 import Link from "next/link";
-import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
+import { OrderCardSkeleton } from "@/components/Skeletons";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuthStore } from "@/lib/stores/auth-store";
-import { Package } from "lucide-react";
-import { OrderCardSkeleton } from "@/components/Skeletons";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 interface Order {
 	_id: string;
 	totalAmount: number;
-	status: "PLACED" | "PACKED" | "SHIPPED" | "DELIVERED" | "PENDING" | "CANCELLED";
+	status:
+		| "PLACED"
+		| "PACKED"
+		| "SHIPPED"
+		| "DELIVERED"
+		| "PENDING"
+		| "CANCELLED";
 	paymentStatus: "PENDING" | "PAID" | "FAILED";
 	paymentMethod: "ONLINE" | "COD";
 	createdAt: string;
@@ -123,7 +129,9 @@ const Orders = () => {
 											</span>
 										</div>
 										<div className="flex items-center gap-2">
-											<span className="text-sm text-muted-foreground">Date:</span>
+											<span className="text-sm text-muted-foreground">
+												Date:
+											</span>
 											<span className="text-sm">
 												{new Date(order.createdAt).toLocaleDateString("en-IN", {
 													day: "numeric",
@@ -136,7 +144,9 @@ const Orders = () => {
 											<span className="text-sm text-muted-foreground">
 												Total:
 											</span>
-											<span className="font-semibold">₹{order.totalAmount}</span>
+											<span className="font-semibold">
+												₹{order.totalAmount}
+											</span>
 										</div>
 										<div className="flex items-center gap-2">
 											<Badge

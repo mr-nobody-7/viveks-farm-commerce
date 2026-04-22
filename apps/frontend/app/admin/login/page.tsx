@@ -1,8 +1,8 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
+import { Button } from "@/components/ui/button";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -36,7 +36,7 @@ export default function AdminLoginPage() {
 
 			// Redirect to admin dashboard
 			router.push("/admin/dashboard");
-		} catch (err) {
+		} catch (_err) {
 			setError("Failed to connect to server");
 			setLoading(false);
 		}
@@ -97,11 +97,7 @@ export default function AdminLoginPage() {
 						</div>
 					)}
 
-					<Button
-						type="submit"
-						className="w-full"
-						disabled={loading}
-					>
+					<Button type="submit" className="w-full" disabled={loading}>
 						{loading ? "Signing in..." : "Sign In"}
 					</Button>
 				</form>

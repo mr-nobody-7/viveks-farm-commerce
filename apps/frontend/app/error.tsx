@@ -2,13 +2,16 @@
 
 import { Button } from "@/components/ui/button";
 
-export default function Error({
-	error,
+export default function ErrorPage({
+	error: _error,
 	reset,
 }: {
-	error: Error & { digest?: string };
+	error: globalThis.Error & { digest?: string };
 	reset: () => void;
 }) {
+	const goHome = () => {
+		window.location.href = "/";
+	};
 	return (
 		<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center space-y-4">
 			<h2 className="text-2xl font-bold">Something went wrong!</h2>
@@ -17,7 +20,7 @@ export default function Error({
 			</p>
 			<div className="flex justify-center gap-4">
 				<Button onClick={() => reset()}>Try Again</Button>
-				<Button variant="outline" onClick={() => (window.location.href = "/")}>
+				<Button variant="outline" onClick={goHome}>
 					Go Home
 				</Button>
 			</div>

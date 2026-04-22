@@ -1,18 +1,19 @@
 "use client";
 
-import { use, useState } from "react";
-import Link from "next/link";
-import { Button } from "@/components/ui/button";
-import { Badge } from "@/components/ui/badge";
-import { Separator } from "@/components/ui/separator";
-import { ShoppingCart, ArrowLeft } from "lucide-react";
-import type { ProductVariant } from "@/lib/api";
-import { ProductCard } from "@/components/ProductCard";
-import { useCartStore } from "@/lib/stores/cart-store";
-import { useRouter } from "next/navigation";
 import { useQuery } from "@tanstack/react-query";
-import { api } from "@/lib/api";
+import { ArrowLeft, ShoppingCart } from "lucide-react";
+import Image from "next/image";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { use, useState } from "react";
 import { toast } from "sonner";
+import { ProductCard } from "@/components/ProductCard";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
+import type { ProductVariant } from "@/lib/api";
+import { api } from "@/lib/api";
+import { useCartStore } from "@/lib/stores/cart-store";
 
 interface ProductDetailProps {
 	params: Promise<{ product_id: string }>;
@@ -39,13 +40,9 @@ export default function ProductDetail({ params }: ProductDetailProps) {
 
 	const { data: relatedProducts = [] } = useQuery({
 		queryKey: ["products", "category", product?.category.slug],
-		queryFn: () => api.getProductsByCategory(product!.category.slug),
+		queryFn: () => api.getProductsByCategory(product?.category.slug ?? ""),
 		enabled: !!product,
 	});
-
-	const filteredRelatedProducts = relatedProducts
-		.filter((p) => p.slug !== product_id)
-		.slice(0, 4);
 
 	if (isLoading) {
 		return (
@@ -129,9 +126,11 @@ export default function ProductDetail({ params }: ProductDetailProps) {
 			<div className="grid grid-cols-1 md:grid-cols-2 gap-8 lg:gap-12">
 				{/* Image */}
 				<div className="aspect-square rounded-lg bg-muted overflow-hidden">
-					<img
+					<Image
 						src={product.images[0]}
 						alt={product.name}
+						width={600}
+						height={600}
 						className="h-full w-full object-cover"
 					/>
 				</div>
@@ -168,7 +167,9 @@ export default function ProductDetail({ params }: ProductDetailProps) {
 							{product.variants.map((v) => (
 								<Button
 									key={v.label}
-									variant={selectedVariant.label === v.label ? "default" : "outline"}
+									variant={
+										selectedVariant.label === v.label ? "default" : "outline"
+									}
 									size="sm"
 									onClick={() => setSelectedVariant(v)}
 								>
@@ -198,7 +199,9 @@ export default function ProductDetail({ params }: ProductDetailProps) {
 					<div className="space-y-3 text-sm">
 						<div>
 							<span className="font-medium">Description:</span>
-							<p className="text-muted-foreground mt-1">{product.description}</p>
+							<p className="text-muted-foreground mt-1">
+								{product.description}
+							</p>
 						</div>
 					</div>
 				</div>

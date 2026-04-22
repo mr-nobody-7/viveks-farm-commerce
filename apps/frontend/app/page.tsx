@@ -1,12 +1,12 @@
 "use client";
 
+import { useQuery } from "@tanstack/react-query";
+import { Heart, Leaf, Shield, Truck } from "lucide-react";
 import Link from "next/link";
+import { ProductCard } from "@/components/ProductCard";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Leaf, Shield, Heart, Truck } from "lucide-react";
-import { ProductCard } from "@/components/ProductCard";
-import { useQuery } from "@tanstack/react-query";
 import { api } from "@/lib/api";
 
 const trustPoints = [
@@ -43,8 +43,8 @@ export default function Home() {
 		queryFn: api.getCategories,
 	});
 
-	const featuredProducts = products.filter(
-		(p) => p.variants.some((v) => v.isActive),
+	const featuredProducts = products.filter((p) =>
+		p.variants.some((v) => v.isActive),
 	);
 
 	if (productsLoading || categoriesLoading) {
@@ -114,7 +114,9 @@ export default function Home() {
 					<div className="flex items-center justify-between mb-8">
 						<div>
 							<h2 className="text-3xl font-bold">Bestsellers</h2>
-							<p className="text-muted-foreground mt-1">Our most loved products</p>
+							<p className="text-muted-foreground mt-1">
+								Our most loved products
+							</p>
 						</div>
 						<Button variant="outline" asChild>
 							<Link href="/shop">View All</Link>

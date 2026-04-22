@@ -1,20 +1,20 @@
 import type { Metadata } from "next";
-import { AuthHydrator } from "@/components/AuthHydrator";
 import { Geist, Geist_Mono } from "next/font/google";
 import { Toaster } from "sonner";
+import { AuthHydrator } from "@/components/AuthHydrator";
 import "./globals.css";
 import Layout from "@/components/Layout";
 import { CartStoreProvider } from "@/providers/cart-store-provider";
 import { ReactQueryProvider } from "@/providers/react-query-provider";
 
 const geistSans = Geist({
-  variable: "--font-geist-sans",
-  subsets: ["latin"],
+	variable: "--font-geist-sans",
+	subsets: ["latin"],
 });
 
 const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+	variable: "--font-geist-mono",
+	subsets: ["latin"],
 });
 
 export const metadata: Metadata = {
@@ -44,24 +44,26 @@ export const metadata: Metadata = {
 };
 
 export default function RootLayout({
-  children,
+	children,
 }: Readonly<{
-  children: React.ReactNode;
+	children: React.ReactNode;
 }>) {
-  return (
-    <html lang="en">
-      <head>
-        <script src="https://checkout.razorpay.com/v1/checkout.js"></script>
-      </head>
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <ReactQueryProvider>
-          <CartStoreProvider>
+	return (
+		<html lang="en">
+			<head>
+				<script src="https://checkout.razorpay.com/v1/checkout.js"></script>
+			</head>
+			<body
+				className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+			>
+				<ReactQueryProvider>
+					<CartStoreProvider>
 						<AuthHydrator />
-            <Layout>{children}</Layout>					<Toaster richColors position="top-center" />          </CartStoreProvider>
-        </ReactQueryProvider>
-      </body>
-    </html>
-  );
+						<Layout>{children}</Layout>{" "}
+						<Toaster richColors position="top-center" />{" "}
+					</CartStoreProvider>
+				</ReactQueryProvider>
+			</body>
+		</html>
+	);
 }

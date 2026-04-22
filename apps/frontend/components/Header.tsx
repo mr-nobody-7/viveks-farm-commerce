@@ -1,14 +1,15 @@
 "use client";
 
+import {
+	Leaf,
+	LogOut,
+	Package,
+	ShoppingCart,
+	User,
+	UserCircle,
+} from "lucide-react";
 import Link from "next/link";
-import { HeaderNavigationMenu } from "./HeaderNavigationMenu";
-import { Leaf, ShoppingCart, User, LogOut, Package, UserCircle } from "lucide-react";
-import { ICON_SIZE } from "@/lib/constants";
-import { Button } from "./ui/button";
-import { useCartStore } from "@/lib/stores/cart-store";
-import { useAuthStore } from "@/lib/stores/auth-store";
 import { useState } from "react";
-import { LoginModal } from "./LoginModal";
 import {
 	DropdownMenu,
 	DropdownMenuContent,
@@ -17,6 +18,12 @@ import {
 	DropdownMenuSeparator,
 	DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ICON_SIZE } from "@/lib/constants";
+import { useAuthStore } from "@/lib/stores/auth-store";
+import { useCartStore } from "@/lib/stores/cart-store";
+import { HeaderNavigationMenu } from "./HeaderNavigationMenu";
+import { LoginModal } from "./LoginModal";
+import { Button } from "./ui/button";
 
 export const Header = () => {
 	const items = useCartStore((state) => state.items);
@@ -38,82 +45,102 @@ export const Header = () => {
 					<div className="flex items-center justify-between gap-3">
 						<Link href="/" className="shrink-0">
 							<div className="flex items-center gap-2">
-								<Leaf className="h-6 w-6 text-primary" size={ICON_SIZE.HEADER} />
-								<span className="text-base sm:text-lg font-bold">Vivek's Farm</span>
+								<Leaf
+									className="h-6 w-6 text-primary"
+									size={ICON_SIZE.HEADER}
+								/>
+								<span className="text-base sm:text-lg font-bold">
+									Vivek's Farm
+								</span>
 							</div>
 						</Link>
 						<div className="hidden lg:block">
 							<HeaderNavigationMenu />
 						</div>
 						<div className="flex items-center gap-1 sm:gap-2 shrink-0">
-					{user ? (
-						<DropdownMenu>
-							<DropdownMenuTrigger asChild>
-								<Button variant="ghost" size="icon" className="h-10 w-10">
-									<User size={ICON_SIZE.HEADER} />
-								</Button>
-							</DropdownMenuTrigger>
-							<DropdownMenuContent align="end">
-								<DropdownMenuLabel>
-									{user.name || user.mobile}
-								</DropdownMenuLabel>
-								<DropdownMenuSeparator />							<DropdownMenuItem asChild>
-								<Link href="/profile">
-									<UserCircle className="mr-2 h-4 w-4" />
-									Profile
-								</Link>
-							</DropdownMenuItem>
-							<DropdownMenuItem asChild>
-								<Link href="/profile/orders">
-									<Package className="mr-2 h-4 w-4" />
-									My Orders
-								</Link>
-							</DropdownMenuItem>
-							<DropdownMenuSeparator />								<DropdownMenuItem onClick={handleLogout}>
-									<LogOut className="mr-2 h-4 w-4" />
-									Logout
-								</DropdownMenuItem>
-							</DropdownMenuContent>
-						</DropdownMenu>
-					) : (
-						<>
-							<Button
-								variant="ghost"
-								onClick={() => setShowLogin(true)}
-								className="hidden sm:inline-flex"
-							>
-								<User size={ICON_SIZE.HEADER} className="mr-2" />
-								Login
-							</Button>
-							<Button
-								variant="ghost"
-								size="icon"
-								onClick={() => setShowLogin(true)}
-								className="h-10 w-10 sm:hidden"
-							>
-								<User size={ICON_SIZE.HEADER} />
-							</Button>
-						</>
-					)}
-					<Button variant="ghost" className="relative h-10 w-10" size="icon" asChild>
-						<Link href="/cart">
-							<ShoppingCart size={ICON_SIZE.HEADER} />
-							{totalItems > 0 && (
-								<span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
-									{totalItems}
-								</span>
+							{user ? (
+								<DropdownMenu>
+									<DropdownMenuTrigger asChild>
+										<Button variant="ghost" size="icon" className="h-10 w-10">
+											<User size={ICON_SIZE.HEADER} />
+										</Button>
+									</DropdownMenuTrigger>
+									<DropdownMenuContent align="end">
+										<DropdownMenuLabel>
+											{user.name || user.mobile}
+										</DropdownMenuLabel>
+										<DropdownMenuSeparator />{" "}
+										<DropdownMenuItem asChild>
+											<Link href="/profile">
+												<UserCircle className="mr-2 h-4 w-4" />
+												Profile
+											</Link>
+										</DropdownMenuItem>
+										<DropdownMenuItem asChild>
+											<Link href="/profile/orders">
+												<Package className="mr-2 h-4 w-4" />
+												My Orders
+											</Link>
+										</DropdownMenuItem>
+										<DropdownMenuSeparator />{" "}
+										<DropdownMenuItem onClick={handleLogout}>
+											<LogOut className="mr-2 h-4 w-4" />
+											Logout
+										</DropdownMenuItem>
+									</DropdownMenuContent>
+								</DropdownMenu>
+							) : (
+								<>
+									<Button
+										variant="ghost"
+										onClick={() => setShowLogin(true)}
+										className="hidden sm:inline-flex"
+									>
+										<User size={ICON_SIZE.HEADER} className="mr-2" />
+										Login
+									</Button>
+									<Button
+										variant="ghost"
+										size="icon"
+										onClick={() => setShowLogin(true)}
+										className="h-10 w-10 sm:hidden"
+									>
+										<User size={ICON_SIZE.HEADER} />
+									</Button>
+								</>
 							)}
-						</Link>
-					</Button>
+							<Button
+								variant="ghost"
+								className="relative h-10 w-10"
+								size="icon"
+								asChild
+							>
+								<Link href="/cart">
+									<ShoppingCart size={ICON_SIZE.HEADER} />
+									{totalItems > 0 && (
+										<span className="absolute -top-1 -right-1 bg-primary text-primary-foreground text-xs rounded-full h-5 w-5 flex items-center justify-center">
+											{totalItems}
+										</span>
+									)}
+								</Link>
+							</Button>
 						</div>
 					</div>
 
 					<div className="lg:hidden border-t mt-2 pt-2">
 						<div className="flex gap-4 overflow-x-auto text-sm whitespace-nowrap text-muted-foreground">
-							<Link href="/" className="hover:text-primary">Home</Link>
-							<Link href="/shop" className="hover:text-primary">Shop</Link>
-							<Link href="/about-us" className="hover:text-primary">About</Link>
-							<Link href="/contact-us" className="hover:text-primary">Contact</Link>
+							<Link href="/" className="hover:text-primary">
+								Home
+							</Link>
+							<Link href="/shop" className="hover:text-primary">
+								Shop
+							</Link>
+							<Link href="/about-us" className="hover:text-primary">
+								About
+							</Link>
+							<Link href="/contact-us" className="hover:text-primary">
+								Contact
+							</Link>
 						</div>
 					</div>
 				</div>

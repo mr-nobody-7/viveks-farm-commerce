@@ -53,9 +53,7 @@ export const useCartStore = create<CartStore>()(
 				set({
 					items: get().items.filter(
 						(i) =>
-							!(
-								i.productId === productId && i.variantLabel === variantLabel
-							),
+							!(i.productId === productId && i.variantLabel === variantLabel),
 					),
 				}),
 

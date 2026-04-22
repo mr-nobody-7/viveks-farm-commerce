@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
+import { useEffect, useState } from "react";
 import {
 	Bar,
 	BarChart,
@@ -14,14 +14,14 @@ import {
 	Tooltip,
 	XAxis,
 } from "recharts";
+import { MetricCardSkeleton } from "@/components/Skeletons";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
+	type ChartConfig,
 	ChartContainer,
 	ChartLegendContent,
 	ChartTooltipContent,
-	type ChartConfig,
 } from "@/components/ui/chart";
-import { MetricCardSkeleton } from "@/components/Skeletons";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -101,7 +101,7 @@ export default function AdminDashboardPage() {
 					setSettings(settingsData);
 					setDeliveryChargeInput(String(settingsData.deliveryCharge ?? 49));
 				}
-			} catch (err) {
+			} catch (_err) {
 				setError("Failed to load dashboard metrics");
 			} finally {
 				setLoading(false);
@@ -131,7 +131,11 @@ export default function AdminDashboardPage() {
 			}
 
 			const updated = (await res.json()) as AdminSettings;
-			setSettings({ ...settings, allowCOD: updated.allowCOD, deliveryCharge: updated.deliveryCharge });
+			setSettings({
+				...settings,
+				allowCOD: updated.allowCOD,
+				deliveryCharge: updated.deliveryCharge,
+			});
 		} catch {
 			setError("Failed to update COD setting");
 		} finally {
@@ -152,7 +156,9 @@ export default function AdminDashboardPage() {
 			});
 			if (!res.ok) throw new Error("Failed");
 			const updated = (await res.json()) as AdminSettings;
-			setSettings((prev) => prev ? { ...prev, deliveryCharge: updated.deliveryCharge } : prev);
+			setSettings((prev) =>
+				prev ? { ...prev, deliveryCharge: updated.deliveryCharge } : prev,
+			);
 			setDeliveryChargeInput(String(updated.deliveryCharge));
 		} catch {
 			setError("Failed to update delivery charge");
@@ -190,7 +196,9 @@ export default function AdminDashboardPage() {
 				{/* COD Toggle */}
 				<div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
 					<div>
-						<p className="text-sm font-medium text-gray-600">Cash on Delivery</p>
+						<p className="text-sm font-medium text-gray-600">
+							Cash on Delivery
+						</p>
 						<p className="text-sm text-gray-500">
 							Current status: {settings?.allowCOD ? "Enabled" : "Disabled"}
 						</p>
@@ -215,7 +223,9 @@ export default function AdminDashboardPage() {
 
 				{/* Delivery Charge */}
 				<div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
-					<p className="text-sm font-medium text-gray-600 mb-3">Delivery Charge (₹)</p>
+					<p className="text-sm font-medium text-gray-600 mb-3">
+						Delivery Charge (₹)
+					</p>
 					<div className="flex gap-2">
 						<input
 							type="number"
@@ -227,7 +237,10 @@ export default function AdminDashboardPage() {
 						<button
 							type="button"
 							onClick={handleUpdateDeliveryCharge}
-							disabled={deliveryChargeUpdating || deliveryChargeInput === String(settings?.deliveryCharge ?? 49)}
+							disabled={
+								deliveryChargeUpdating ||
+								deliveryChargeInput === String(settings?.deliveryCharge ?? 49)
+							}
 							className="px-4 py-2 rounded-md text-sm font-medium bg-green-100 text-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
 						>
 							{deliveryChargeUpdating ? "Saving..." : "Save"}
@@ -241,15 +254,14 @@ export default function AdminDashboardPage() {
 				<div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
 					<div className="flex items-center justify-between">
 						<div>
-							<p className="text-sm font-medium text-gray-600">
-								Total Orders
-							</p>
+							<p className="text-sm font-medium text-gray-600">Total Orders</p>
 							<p className="text-3xl font-bold mt-2">
 								{metrics?.totalOrders || 0}
 							</p>
 						</div>
 						<div className="bg-blue-100 p-3 rounded-full">
 							<svg
+								aria-hidden="true"
 								className="w-6 h-6 text-blue-600"
 								fill="none"
 								stroke="currentColor"
@@ -270,15 +282,14 @@ export default function AdminDashboardPage() {
 				<div className="bg-white p-6 rounded-lg border border-gray-200 shadow-sm">
 					<div className="flex items-center justify-between">
 						<div>
-							<p className="text-sm font-medium text-gray-600">
-								Total Revenue
-							</p>
+							<p className="text-sm font-medium text-gray-600">Total Revenue</p>
 							<p className="text-3xl font-bold mt-2">
 								₹{metrics?.totalRevenue?.toLocaleString() || 0}
 							</p>
 						</div>
 						<div className="bg-green-100 p-3 rounded-full">
 							<svg
+								aria-hidden="true"
 								className="w-6 h-6 text-green-600"
 								fill="none"
 								stroke="currentColor"
@@ -308,6 +319,7 @@ export default function AdminDashboardPage() {
 						</div>
 						<div className="bg-yellow-100 p-3 rounded-full">
 							<svg
+								aria-hidden="true"
 								className="w-6 h-6 text-yellow-600"
 								fill="none"
 								stroke="currentColor"
@@ -351,8 +363,16 @@ export default function AdminDashboardPage() {
 											}
 										/>
 										<Legend content={<ChartLegendContent />} />
-										<Bar dataKey="revenue" fill="var(--color-revenue)" radius={6} />
-										<Bar dataKey="orders" fill="var(--color-orders)" radius={6} />
+										<Bar
+											dataKey="revenue"
+											fill="var(--color-revenue)"
+											radius={6}
+										/>
+										<Bar
+											dataKey="orders"
+											fill="var(--color-orders)"
+											radius={6}
+										/>
 									</BarChart>
 								</ResponsiveContainer>
 							</ChartContainer>
