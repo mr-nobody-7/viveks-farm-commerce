@@ -39,6 +39,7 @@ interface AnalyticsResponse {
 
 interface AdminSettings {
 	allowCOD: boolean;
+	deliveryCharge: number;
 }
 
 const revenueConfig = {
@@ -59,6 +60,8 @@ export default function AdminDashboardPage() {
 	const [analytics, setAnalytics] = useState<AnalyticsResponse | null>(null);
 	const [settings, setSettings] = useState<AdminSettings | null>(null);
 	const [settingsUpdating, setSettingsUpdating] = useState(false);
+	const [deliveryChargeInput, setDeliveryChargeInput] = useState("");
+	const [deliveryChargeUpdating, setDeliveryChargeUpdating] = useState(false);
 	const router = useRouter();
 
 	useEffect(() => {
@@ -96,6 +99,7 @@ export default function AdminDashboardPage() {
 				if (settingsRes.ok) {
 					const settingsData = (await settingsRes.json()) as AdminSettings;
 					setSettings(settingsData);
+					setDeliveryChargeInput(String(settingsData.deliveryCharge ?? 49));
 				}
 			} catch (err) {
 				setError("Failed to load dashboard metrics");
@@ -127,11 +131,33 @@ export default function AdminDashboardPage() {
 			}
 
 			const updated = (await res.json()) as AdminSettings;
-			setSettings({ allowCOD: updated.allowCOD });
+			setSettings({ ...settings, allowCOD: updated.allowCOD, deliveryCharge: updated.deliveryCharge });
 		} catch {
 			setError("Failed to update COD setting");
 		} finally {
 			setSettingsUpdating(false);
+		}
+	};
+
+	const handleUpdateDeliveryCharge = async () => {
+		const value = Number(deliveryChargeInput);
+		if (Number.isNaN(value) || value < 0) return;
+		setDeliveryChargeUpdating(true);
+		try {
+			const res = await fetch(`${API_URL}/api/admin/settings`, {
+				method: "PATCH",
+				headers: { "Content-Type": "application/json" },
+				credentials: "include",
+				body: JSON.stringify({ deliveryCharge: value }),
+			});
+			if (!res.ok) throw new Error("Failed");
+			const updated = (await res.json()) as AdminSettings;
+			setSettings((prev) => prev ? { ...prev, deliveryCharge: updated.deliveryCharge } : prev);
+			setDeliveryChargeInput(String(updated.deliveryCharge));
+		} catch {
+			setError("Failed to update delivery charge");
+		} finally {
+			setDeliveryChargeUpdating(false);
 		}
 	};
 
@@ -160,29 +186,54 @@ export default function AdminDashboardPage() {
 		<div className="space-y-6">
 			<h1 className="text-3xl font-bold">Dashboard</h1>
 
-			<div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
-				<div>
-					<p className="text-sm font-medium text-gray-600">Cash on Delivery</p>
-					<p className="text-sm text-gray-500">
-						Current status: {settings?.allowCOD ? "Enabled" : "Disabled"}
-					</p>
+			<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+				{/* COD Toggle */}
+				<div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm flex flex-wrap items-center justify-between gap-3">
+					<div>
+						<p className="text-sm font-medium text-gray-600">Cash on Delivery</p>
+						<p className="text-sm text-gray-500">
+							Current status: {settings?.allowCOD ? "Enabled" : "Disabled"}
+						</p>
+					</div>
+					<button
+						type="button"
+						onClick={handleToggleCOD}
+						disabled={!settings || settingsUpdating}
+						className={`px-4 py-2 rounded-md text-sm font-medium ${
+							settings?.allowCOD
+								? "bg-red-100 text-red-700"
+								: "bg-green-100 text-green-700"
+						}`}
+					>
+						{settingsUpdating
+							? "Updating..."
+							: settings?.allowCOD
+								? "Disable COD"
+								: "Enable COD"}
+					</button>
 				</div>
-				<button
-					type="button"
-					onClick={handleToggleCOD}
-					disabled={!settings || settingsUpdating}
-					className={`px-4 py-2 rounded-md text-sm font-medium ${
-						settings?.allowCOD
-							? "bg-red-100 text-red-700"
-							: "bg-green-100 text-green-700"
-					}`}
-				>
-					{settingsUpdating
-						? "Updating..."
-						: settings?.allowCOD
-							? "Disable COD"
-							: "Enable COD"}
-				</button>
+
+				{/* Delivery Charge */}
+				<div className="bg-white p-4 rounded-lg border border-gray-200 shadow-sm">
+					<p className="text-sm font-medium text-gray-600 mb-3">Delivery Charge (₹)</p>
+					<div className="flex gap-2">
+						<input
+							type="number"
+							min="0"
+							value={deliveryChargeInput}
+							onChange={(e) => setDeliveryChargeInput(e.target.value)}
+							className="flex-1 px-3 py-2 border border-gray-300 rounded-md text-sm focus:outline-none focus:ring-green-500 focus:border-green-500"
+						/>
+						<button
+							type="button"
+							onClick={handleUpdateDeliveryCharge}
+							disabled={deliveryChargeUpdating || deliveryChargeInput === String(settings?.deliveryCharge ?? 49)}
+							className="px-4 py-2 rounded-md text-sm font-medium bg-green-100 text-green-700 disabled:opacity-50 disabled:cursor-not-allowed"
+						>
+							{deliveryChargeUpdating ? "Saving..." : "Save"}
+						</button>
+					</div>
+				</div>
 			</div>
 
 			<div className="grid grid-cols-1 md:grid-cols-3 gap-6">
