@@ -44,6 +44,9 @@ export default function AdminProductsPage() {
 	const [products, setProducts] = useState<Product[]>([]);
 	const [categories, setCategories] = useState<Category[]>([]);
 	const [loading, setLoading] = useState(true);
+	const [searchQuery, setSearchQuery] = useState("");
+	const [categoryFilter, setCategoryFilter] = useState("ALL");
+	const [statusFilter, setStatusFilter] = useState<"ALL" | "ACTIVE" | "INACTIVE">("ALL");
 	const [showModal, setShowModal] = useState(false);
 	const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 	const [uploading, setUploading] = useState(false);
@@ -277,11 +280,58 @@ export default function AdminProductsPage() {
 		return <AdminTableSkeleton rows={6} cols={5} />;
 	}
 
+	const q = searchQuery.trim().toLowerCase();
+	const filteredProducts = products.filter((p) => {
+		const matchesSearch = !q || p.name.toLowerCase().includes(q) || p.description.toLowerCase().includes(q);
+		const matchesCategory = categoryFilter === "ALL" || p.category._id === categoryFilter;
+		const matchesStatus = statusFilter === "ALL" || (statusFilter === "ACTIVE" ? p.isActive : !p.isActive);
+		return matchesSearch && matchesCategory && matchesStatus;
+	});
+
 	return (
 		<div className="space-y-6">
 			<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
 				<h1 className="text-3xl font-bold">Products</h1>
 				<Button onClick={() => handleOpenModal()}>Add Product</Button>
+			</div>
+
+			{/* Filters */}
+			<div className="bg-white rounded-lg border border-gray-200 p-4 flex flex-wrap gap-3">
+				<input
+					type="text"
+					value={searchQuery}
+					onChange={(e) => setSearchQuery(e.target.value)}
+					placeholder="Search products..."
+					className="px-3 py-2 border border-gray-300 rounded-md text-sm flex-1 min-w-40"
+				/>
+				<select
+					value={categoryFilter}
+					onChange={(e) => setCategoryFilter(e.target.value)}
+					className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+				>
+					<option value="ALL">All Categories</option>
+					{categories.map((cat) => (
+						<option key={cat._id} value={cat._id}>{cat.name}</option>
+					))}
+				</select>
+				<select
+					value={statusFilter}
+					onChange={(e) => setStatusFilter(e.target.value as "ALL" | "ACTIVE" | "INACTIVE")}
+					className="px-3 py-2 border border-gray-300 rounded-md text-sm"
+				>
+					<option value="ALL">All Statuses</option>
+					<option value="ACTIVE">Active</option>
+					<option value="INACTIVE">Inactive</option>
+				</select>
+				{(searchQuery || categoryFilter !== "ALL" || statusFilter !== "ALL") && (
+					<button
+						type="button"
+						onClick={() => { setSearchQuery(""); setCategoryFilter("ALL"); setStatusFilter("ALL"); }}
+						className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-50 hover:bg-gray-100"
+					>
+						Reset
+					</button>
+				)}
 			</div>
 
 			{/* Products Table */}
@@ -308,14 +358,16 @@ export default function AdminProductsPage() {
 							</tr>
 						</thead>
 						<tbody className="bg-white divide-y divide-gray-200">
-							{products.length === 0 && (
-								<tr>
-									<td colSpan={5} className="px-6 py-12 text-center text-gray-500">
-										No products yet. Click "Add Product" to create one.
-									</td>
-								</tr>
-							)}
-							{products.map((product) => (
+						{filteredProducts.length === 0 && (
+							<tr>
+								<td colSpan={5} className="px-6 py-12 text-center text-gray-500">
+									{products.length === 0
+										? "No products yet. Click \"Add Product\" to create one."
+										: "No products match your filters."}
+								</td>
+							</tr>
+						)}
+						{filteredProducts.map((product) => (
 								<tr key={product._id}>
 									<td className="px-6 py-4 whitespace-nowrap">
 										<div className="flex items-center">
