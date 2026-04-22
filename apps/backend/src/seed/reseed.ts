@@ -3,8 +3,8 @@ import { connectToDatabase } from "../db/connect";
 import { AppConfig } from "../models/app-config.model";
 import { Category } from "../models/category.model";
 import { Coupon } from "../models/coupon.model";
-import { OTP } from "../models/otp.model";
 import { Order } from "../models/order.model";
+import { OTP } from "../models/otp.model";
 import { Product } from "../models/product.model";
 import { User } from "../models/user.model";
 
@@ -85,7 +85,8 @@ const products: SeedProduct[] = [
 	{
 		name: "A2 Bilona Cow Ghee",
 		slug: "a2-bilona-cow-ghee",
-		description: "A2 bilona ghee prepared from cultured curd using traditional methods.",
+		description:
+			"A2 bilona ghee prepared from cultured curd using traditional methods.",
 		categorySlug: "ghee",
 		images: [],
 		variants: [

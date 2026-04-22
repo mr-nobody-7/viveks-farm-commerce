@@ -285,4 +285,27 @@ router.post("/orders", requireAuth, async (req: AuthRequest, res) => {
 	}
 });
 
+router.patch(
+	"/orders/:id/cancel",
+	requireAuth,
+	async (req: AuthRequest, res) => {
+		const order = await Order.findOne({ _id: req.params.id, user: req.userId });
+
+		if (!order) {
+			return res.status(404).json({ message: "Order not found" });
+		}
+
+		if (order.status !== "PLACED") {
+			return res
+				.status(400)
+				.json({ message: "Only PLACED orders can be cancelled" });
+		}
+
+		order.status = "CANCELLED";
+		await order.save();
+
+		res.json({ message: "Order cancelled successfully" });
+	},
+);
+
 export default router;

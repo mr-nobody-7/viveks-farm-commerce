@@ -27,7 +27,13 @@ export interface IOrder extends Document {
 	couponCode?: string;
 	totalAmount: number;
 	address: IAddress;
-	status: "PENDING" | "PLACED" | "PACKED" | "SHIPPED" | "DELIVERED";
+	status:
+		| "PENDING"
+		| "PLACED"
+		| "PACKED"
+		| "SHIPPED"
+		| "DELIVERED"
+		| "CANCELLED";
 	paymentMethod: "ONLINE" | "COD";
 	paymentStatus: "PENDING" | "PAID" | "FAILED";
 	razorpayOrderId?: string;
@@ -71,7 +77,14 @@ const orderSchema = new Schema<IOrder>(
 		address: addressSchema,
 		status: {
 			type: String,
-			enum: ["PENDING", "PLACED", "PACKED", "SHIPPED", "DELIVERED"],
+			enum: [
+				"PENDING",
+				"PLACED",
+				"PACKED",
+				"SHIPPED",
+				"DELIVERED",
+				"CANCELLED",
+			],
 			default: "PLACED",
 		},
 		paymentMethod: {

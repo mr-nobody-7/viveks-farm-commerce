@@ -16,4 +16,23 @@ router.patch("/users/profile", requireAuth, async (req: AuthRequest, res) => {
 	res.json(user);
 });
 
+router.patch("/users/address", requireAuth, async (req: AuthRequest, res) => {
+	const { fullName, phone, addressLine, city, state, pincode } = req.body as {
+		fullName?: string;
+		phone?: string;
+		addressLine?: string;
+		city?: string;
+		state?: string;
+		pincode?: string;
+	};
+
+	const user = await User.findByIdAndUpdate(
+		req.userId,
+		{ savedAddress: { fullName, phone, addressLine, city, state, pincode } },
+		{ new: true },
+	).lean();
+
+	res.json(user);
+});
+
 export default router;
