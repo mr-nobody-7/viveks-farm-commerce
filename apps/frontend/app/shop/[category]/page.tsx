@@ -3,6 +3,7 @@ import { useQuery } from "@tanstack/react-query";
 import Link from "next/link";
 import { use, useMemo, useState } from "react";
 import { ProductCard } from "@/components/ProductCard";
+import { ProductCardSkeleton } from "@/components/Skeletons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import {
@@ -51,8 +52,12 @@ export default function ShopByCategory({ params }: ShopByCategoryProps) {
 
 	if (productsLoading || categoriesLoading) {
 		return (
-			<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 text-center">
-				<p className="text-muted-foreground">Loading...</p>
+			<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8">
+				<div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+					{["s1", "s2", "s3", "s4", "s5", "s6", "s7", "s8"].map((id) => (
+						<ProductCardSkeleton key={id} />
+					))}
+				</div>
 			</div>
 		);
 	}

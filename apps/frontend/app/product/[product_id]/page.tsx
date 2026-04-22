@@ -1,7 +1,7 @@
 "use client";
 
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft, ShoppingCart } from "lucide-react";
+import { ArrowLeft, Minus, Plus, ShoppingCart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -23,6 +23,8 @@ export default function ProductDetail({ params }: ProductDetailProps) {
 	const { product_id } = use(params);
 	const router = useRouter();
 	const addItem = useCartStore((state) => state.addItem);
+	const updateQuantity = useCartStore((state) => state.updateQuantity);
+	const cartItems = useCartStore((state) => state.items);
 
 	const { data: product, isLoading } = useQuery({
 		queryKey: ["product", product_id],
@@ -86,6 +88,14 @@ export default function ProductDetail({ params }: ProductDetailProps) {
 		});
 		toast.success(`${product.name} added to cart`);
 	};
+
+	const cartItem = selectedVariant
+		? cartItems.find(
+				(i) =>
+					i.productId === product._id &&
+					i.variantLabel === selectedVariant.label,
+			)
+		: undefined;
 
 	const handleBuyNow = () => {
 		addItem({
@@ -180,10 +190,46 @@ export default function ProductDetail({ params }: ProductDetailProps) {
 					</div>
 
 					<div className="flex gap-3">
-						<Button size="lg" className="flex-1" onClick={handleAddToCart}>
-							<ShoppingCart className="h-5 w-5 mr-2" />
-							Add to Cart
-						</Button>
+						{cartItem ? (
+							<div className="flex items-center gap-2 border rounded-md px-2 h-11">
+								<Button
+									size="icon"
+									variant="ghost"
+									className="h-8 w-8"
+									onClick={() =>
+										updateQuantity(
+											product._id,
+											selectedVariant.label,
+											cartItem.quantity - 1,
+										)
+									}
+								>
+									<Minus className="h-4 w-4" />
+								</Button>
+								<span className="w-8 text-center font-semibold">
+									{cartItem.quantity}
+								</span>
+								<Button
+									size="icon"
+									variant="ghost"
+									className="h-8 w-8"
+									onClick={() =>
+										updateQuantity(
+											product._id,
+											selectedVariant.label,
+											cartItem.quantity + 1,
+										)
+									}
+								>
+									<Plus className="h-4 w-4" />
+								</Button>
+							</div>
+						) : (
+							<Button size="lg" className="flex-1" onClick={handleAddToCart}>
+								<ShoppingCart className="h-5 w-5 mr-2" />
+								Add to Cart
+							</Button>
+						)}
 						<Button
 							size="lg"
 							variant="outline"
@@ -206,8 +252,6 @@ export default function ProductDetail({ params }: ProductDetailProps) {
 					</div>
 				</div>
 			</div>
-
-			{/* Related Products */}
 			{relatedProducts.length > 0 && (
 				<section className="mt-16">
 					<h2 className="text-2xl font-bold mb-6">You might also like</h2>

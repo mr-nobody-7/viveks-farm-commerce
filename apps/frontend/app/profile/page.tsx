@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2, Package } from "lucide-react";
+import { Loader2, MapPin, Package, Plus, Star, Trash2 } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
@@ -17,43 +17,53 @@ import {
 	SelectValue,
 } from "@/components/ui/select";
 import { INDIAN_STATES } from "@/lib/constants";
-import { useAuthStore } from "@/lib/stores/auth-store";
+import { type SavedAddress, useAuthStore } from "@/lib/stores/auth-store";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+
+type AddressForm = {
+	label: string;
+	fullName: string;
+	phone: string;
+	addressLine: string;
+	city: string;
+	state: string;
+	pincode: string;
+};
+
+const emptyForm = (): AddressForm => ({
+	label: "",
+	fullName: "",
+	phone: "",
+	addressLine: "",
+	city: "",
+	state: "",
+	pincode: "",
+});
 
 const Profile = () => {
 	const user = useAuthStore((state) => state.user);
 	const setUser = useAuthStore((state) => state.setUser);
+	const hasHydrated = useAuthStore((state) => state._hasHydrated);
 	const router = useRouter();
 
-	// Basic info
 	const [name, setName] = useState("");
 	const [profileLoading, setProfileLoading] = useState(false);
 
-	// Saved address
-	const [addrFullName, setAddrFullName] = useState("");
-	const [addrPhone, setAddrPhone] = useState("");
-	const [addrLine, setAddrLine] = useState("");
-	const [addrCity, setAddrCity] = useState("");
-	const [addrState, setAddrState] = useState("");
-	const [addrPincode, setAddrPincode] = useState("");
+	// New address form
+	const [showAddForm, setShowAddForm] = useState(false);
+	const [newAddr, setNewAddr] = useState<AddressForm>(emptyForm());
 	const [addrLoading, setAddrLoading] = useState(false);
+	const [actionLoading, setActionLoading] = useState<string | null>(null);
 
 	useEffect(() => {
+		if (!hasHydrated) return;
 		if (!user) {
 			router.push("/");
 		} else {
 			setName(user.name || "");
-			if (user.savedAddress) {
-				setAddrFullName(user.savedAddress.fullName || "");
-				setAddrPhone(user.savedAddress.phone || "");
-				setAddrLine(user.savedAddress.addressLine || "");
-				setAddrCity(user.savedAddress.city || "");
-				setAddrState(user.savedAddress.state || "");
-				setAddrPincode(user.savedAddress.pincode || "");
-			}
 		}
-	}, [user, router]);
+	}, [hasHydrated, user, router]);
 
 	const handleSaveProfile = async (e: React.FormEvent) => {
 		e.preventDefault();
@@ -76,37 +86,76 @@ const Profile = () => {
 		}
 	};
 
-	const handleSaveAddress = async (e: React.FormEvent) => {
+	const handleAddAddress = async (e: React.FormEvent) => {
 		e.preventDefault();
 		setAddrLoading(true);
 		try {
-			const response = await fetch(`${API_URL}/api/users/address`, {
-				method: "PATCH",
+			const response = await fetch(`${API_URL}/api/users/addresses`, {
+				method: "POST",
 				credentials: "include",
 				headers: { "Content-Type": "application/json" },
 				body: JSON.stringify({
-					fullName: addrFullName,
-					phone: addrPhone,
-					addressLine: addrLine,
-					city: addrCity,
-					state: addrState,
-					pincode: addrPincode,
+					...newAddr,
+					isDefault: (user?.addresses?.length ?? 0) === 0,
 				}),
 			});
-			if (!response.ok) throw new Error("Failed to save address");
+			if (!response.ok) throw new Error("Failed to add address");
 			const updatedUser = await response.json();
 			setUser(updatedUser);
-			toast.success("Address saved successfully!");
+			toast.success("Address added!");
+			setShowAddForm(false);
+			setNewAddr(emptyForm());
 		} catch {
-			toast.error("Failed to save address");
+			toast.error("Failed to add address");
 		} finally {
 			setAddrLoading(false);
 		}
 	};
 
-	if (!user) {
+	const handleDeleteAddress = async (id: string) => {
+		setActionLoading(id);
+		try {
+			const response = await fetch(`${API_URL}/api/users/addresses/${id}`, {
+				method: "DELETE",
+				credentials: "include",
+			});
+			if (!response.ok) throw new Error("Failed to delete address");
+			const updatedUser = await response.json();
+			setUser(updatedUser);
+			toast.success("Address deleted");
+		} catch {
+			toast.error("Failed to delete address");
+		} finally {
+			setActionLoading(null);
+		}
+	};
+
+	const handleSetDefault = async (id: string) => {
+		setActionLoading(`${id}-default`);
+		try {
+			const response = await fetch(
+				`${API_URL}/api/users/addresses/${id}/default`,
+				{
+					method: "PATCH",
+					credentials: "include",
+				},
+			);
+			if (!response.ok) throw new Error("Failed to set default");
+			const updatedUser = await response.json();
+			setUser(updatedUser);
+			toast.success("Default address updated");
+		} catch {
+			toast.error("Failed to update default address");
+		} finally {
+			setActionLoading(null);
+		}
+	};
+
+	if (!hasHydrated || !user) {
 		return null;
 	}
+
+	const addresses: SavedAddress[] = user.addresses || [];
 
 	return (
 		<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-8 max-w-4xl">
@@ -168,91 +217,223 @@ const Profile = () => {
 						</CardContent>
 					</Card>
 
-					{/* Saved Address */}
+					{/* Saved Addresses */}
 					<Card>
 						<CardHeader>
-							<CardTitle>Saved Address</CardTitle>
-						</CardHeader>
-						<CardContent>
-							<form onSubmit={handleSaveAddress} className="space-y-4">
-								<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-									<div className="space-y-2">
-										<Label htmlFor="addrFullName">Full Name</Label>
-										<Input
-											id="addrFullName"
-											value={addrFullName}
-											onChange={(e) => setAddrFullName(e.target.value)}
-											placeholder="Full name"
-										/>
-									</div>
-									<div className="space-y-2">
-										<Label htmlFor="addrPhone">Phone</Label>
-										<Input
-											id="addrPhone"
-											type="tel"
-											value={addrPhone}
-											onChange={(e) => setAddrPhone(e.target.value)}
-											placeholder="10-digit mobile number"
-											pattern="[0-9]{10}"
-										/>
-									</div>
-								</div>
-								<div className="space-y-2">
-									<Label htmlFor="addrLine">Address</Label>
-									<Input
-										id="addrLine"
-										value={addrLine}
-										onChange={(e) => setAddrLine(e.target.value)}
-										placeholder="House/Flat, Street"
-									/>
-								</div>
-								<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-									<div className="space-y-2">
-										<Label htmlFor="addrCity">City</Label>
-										<Input
-											id="addrCity"
-											value={addrCity}
-											onChange={(e) => setAddrCity(e.target.value)}
-											placeholder="City"
-										/>
-									</div>
-									<div className="space-y-2">
-										<Label htmlFor="addrState">State</Label>
-										<Select value={addrState} onValueChange={setAddrState}>
-											<SelectTrigger id="addrState">
-												<SelectValue placeholder="Select state" />
-											</SelectTrigger>
-											<SelectContent>
-												{INDIAN_STATES.map((s) => (
-													<SelectItem key={s} value={s}>
-														{s}
-													</SelectItem>
-												))}
-											</SelectContent>
-										</Select>
-									</div>
-									<div className="space-y-2">
-										<Label htmlFor="addrPincode">Pincode</Label>
-										<Input
-											id="addrPincode"
-											value={addrPincode}
-											onChange={(e) => setAddrPincode(e.target.value)}
-											placeholder="500001"
-											pattern="[0-9]{6}"
-										/>
-									</div>
-								</div>
-								<Button type="submit" disabled={addrLoading}>
-									{addrLoading ? (
-										<>
-											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
-											Saving...
-										</>
-									) : (
-										"Save Address"
-									)}
+							<div className="flex items-center justify-between">
+								<CardTitle>Saved Addresses</CardTitle>
+								<Button
+									type="button"
+									size="sm"
+									variant="outline"
+									onClick={() => setShowAddForm(!showAddForm)}
+								>
+									<Plus className="h-4 w-4 mr-1" />
+									Add Address
 								</Button>
-							</form>
+							</div>
+						</CardHeader>
+						<CardContent className="space-y-4">
+							{/* Existing addresses */}
+							{addresses.length === 0 && !showAddForm && (
+								<p className="text-sm text-muted-foreground">
+									No saved addresses yet. Add one to speed up checkout.
+								</p>
+							)}
+							{addresses.map((addr) => (
+								<div key={addr._id} className="border rounded-lg p-4 space-y-1">
+									<div className="flex items-start justify-between gap-2">
+										<div className="flex items-center gap-2">
+											<MapPin className="h-4 w-4 text-muted-foreground shrink-0" />
+											<p className="font-medium text-sm">
+												{addr.label || addr.fullName}
+												{addr.isDefault && (
+													<span className="ml-2 text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded">
+														Default
+													</span>
+												)}
+											</p>
+										</div>
+										<div className="flex items-center gap-1 shrink-0">
+											{!addr.isDefault && (
+												<Button
+													size="sm"
+													variant="ghost"
+													className="h-8 text-xs"
+													onClick={() => handleSetDefault(addr._id)}
+													disabled={actionLoading === `${addr._id}-default`}
+												>
+													{actionLoading === `${addr._id}-default` ? (
+														<Loader2 className="h-3 w-3 animate-spin" />
+													) : (
+														<>
+															<Star className="h-3 w-3 mr-1" />
+															Set Default
+														</>
+													)}
+												</Button>
+											)}
+											<Button
+												size="icon"
+												variant="ghost"
+												className="h-8 w-8 text-destructive hover:text-destructive"
+												onClick={() => handleDeleteAddress(addr._id)}
+												disabled={actionLoading === addr._id}
+											>
+												{actionLoading === addr._id ? (
+													<Loader2 className="h-3 w-3 animate-spin" />
+												) : (
+													<Trash2 className="h-3 w-3" />
+												)}
+											</Button>
+										</div>
+									</div>
+									<p className="text-xs text-muted-foreground pl-6">
+										{addr.fullName} · {addr.phone}
+									</p>
+									<p className="text-xs text-muted-foreground pl-6">
+										{addr.addressLine}, {addr.city}, {addr.state} -{" "}
+										{addr.pincode}
+									</p>
+								</div>
+							))}
+
+							{/* Add new address form */}
+							{showAddForm && (
+								<form
+									onSubmit={handleAddAddress}
+									className="space-y-4 border rounded-lg p-4"
+								>
+									<p className="font-medium text-sm">New Address</p>
+									<div className="space-y-2">
+										<Label htmlFor="newAddrLabel">Label (optional)</Label>
+										<Input
+											id="newAddrLabel"
+											value={newAddr.label}
+											onChange={(e) =>
+												setNewAddr((p) => ({ ...p, label: e.target.value }))
+											}
+											placeholder="Home, Office, etc."
+										/>
+									</div>
+									<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+										<div className="space-y-2">
+											<Label htmlFor="newAddrFullName">Full Name</Label>
+											<Input
+												id="newAddrFullName"
+												required
+												value={newAddr.fullName}
+												onChange={(e) =>
+													setNewAddr((p) => ({
+														...p,
+														fullName: e.target.value,
+													}))
+												}
+												placeholder="Full name"
+											/>
+										</div>
+										<div className="space-y-2">
+											<Label htmlFor="newAddrPhone">Phone</Label>
+											<Input
+												id="newAddrPhone"
+												type="tel"
+												required
+												value={newAddr.phone}
+												onChange={(e) =>
+													setNewAddr((p) => ({ ...p, phone: e.target.value }))
+												}
+												placeholder="10-digit number"
+												pattern="[0-9]{10}"
+											/>
+										</div>
+									</div>
+									<div className="space-y-2">
+										<Label htmlFor="newAddrLine">Address</Label>
+										<Input
+											id="newAddrLine"
+											required
+											value={newAddr.addressLine}
+											onChange={(e) =>
+												setNewAddr((p) => ({
+													...p,
+													addressLine: e.target.value,
+												}))
+											}
+											placeholder="House/Flat, Street"
+										/>
+									</div>
+									<div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+										<div className="space-y-2">
+											<Label htmlFor="newAddrCity">City</Label>
+											<Input
+												id="newAddrCity"
+												required
+												value={newAddr.city}
+												onChange={(e) =>
+													setNewAddr((p) => ({ ...p, city: e.target.value }))
+												}
+												placeholder="City"
+											/>
+										</div>
+										<div className="space-y-2">
+											<Label htmlFor="newAddrState">State</Label>
+											<Select
+												value={newAddr.state}
+												onValueChange={(v) =>
+													setNewAddr((p) => ({ ...p, state: v }))
+												}
+												required
+											>
+												<SelectTrigger id="newAddrState">
+													<SelectValue placeholder="Select state" />
+												</SelectTrigger>
+												<SelectContent>
+													{INDIAN_STATES.map((s) => (
+														<SelectItem key={s} value={s}>
+															{s}
+														</SelectItem>
+													))}
+												</SelectContent>
+											</Select>
+										</div>
+										<div className="space-y-2">
+											<Label htmlFor="newAddrPincode">Pincode</Label>
+											<Input
+												id="newAddrPincode"
+												required
+												value={newAddr.pincode}
+												onChange={(e) =>
+													setNewAddr((p) => ({ ...p, pincode: e.target.value }))
+												}
+												placeholder="500001"
+												pattern="[0-9]{6}"
+											/>
+										</div>
+									</div>
+									<div className="flex gap-2">
+										<Button type="submit" disabled={addrLoading}>
+											{addrLoading ? (
+												<>
+													<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+													Saving...
+												</>
+											) : (
+												"Save Address"
+											)}
+										</Button>
+										<Button
+											type="button"
+											variant="outline"
+											onClick={() => {
+												setShowAddForm(false);
+												setNewAddr(emptyForm());
+											}}
+										>
+											Cancel
+										</Button>
+									</div>
+								</form>
+							)}
 						</CardContent>
 					</Card>
 				</div>

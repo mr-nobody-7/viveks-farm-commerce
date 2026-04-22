@@ -1,6 +1,6 @@
 "use client";
 
-import { ShoppingCart } from "lucide-react";
+import { Minus, Plus, ShoppingCart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -17,6 +17,13 @@ interface ProductCardProps {
 export const ProductCard = ({ product }: ProductCardProps) => {
 	const variant = product.variants[0];
 	const addItem = useCartStore((state) => state.addItem);
+	const updateQuantity = useCartStore((state) => state.updateQuantity);
+	const items = useCartStore((state) => state.items);
+
+	const cartItem = items.find(
+		(i) => i.productId === product._id && i.variantLabel === variant.label,
+	);
+
 	const discountPercentage =
 		variant.originalPrice && variant.originalPrice > variant.price
 			? Math.round(
@@ -39,6 +46,18 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 			quantity: 1,
 		});
 		toast.success(`${product.name} added to cart`);
+	};
+
+	const handleDecrease = (e: React.MouseEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		updateQuantity(product._id, variant.label, (cartItem?.quantity ?? 1) - 1);
+	};
+
+	const handleIncrease = (e: React.MouseEvent) => {
+		e.preventDefault();
+		e.stopPropagation();
+		updateQuantity(product._id, variant.label, (cartItem?.quantity ?? 0) + 1);
 	};
 
 	return (
@@ -78,14 +97,39 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 							</span>
 						)}
 					</div>
-					<div className="grid grid-cols-2 gap-2 pt-1">
-						<Button size="sm" className="h-10 w-full" onClick={handleAddToCart}>
-							<ShoppingCart className="h-4 w-4 mr-1" />
-							Add
-						</Button>
-						<Button size="sm" variant="outline" className="h-10 w-full" asChild>
-							<span>View</span>
-						</Button>
+					<div className="pt-1">
+						{cartItem ? (
+							<div className="flex items-center justify-center gap-1 border rounded-md h-10">
+								<Button
+									size="icon"
+									variant="ghost"
+									className="h-8 w-8"
+									onClick={handleDecrease}
+								>
+									<Minus className="h-3 w-3" />
+								</Button>
+								<span className="w-6 text-center text-sm font-medium">
+									{cartItem.quantity}
+								</span>
+								<Button
+									size="icon"
+									variant="ghost"
+									className="h-8 w-8"
+									onClick={handleIncrease}
+								>
+									<Plus className="h-3 w-3" />
+								</Button>
+							</div>
+						) : (
+							<Button
+								size="sm"
+								className="h-10 w-full"
+								onClick={handleAddToCart}
+							>
+								<ShoppingCart className="h-4 w-4 mr-1" />
+								Add
+							</Button>
+						)}
 					</div>
 				</CardContent>
 			</Card>

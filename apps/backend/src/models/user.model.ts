@@ -1,32 +1,34 @@
 import mongoose, { type Document, Schema } from "mongoose";
 
 export interface ISavedAddress {
+	_id?: string;
+	label?: string;
 	fullName: string;
 	phone: string;
 	addressLine: string;
 	city: string;
 	state: string;
 	pincode: string;
+	isDefault: boolean;
 }
 
 export interface IUser extends Document {
 	mobile: string;
 	name?: string;
 	role: "customer";
-	savedAddress?: ISavedAddress;
+	addresses: ISavedAddress[];
 }
 
-const savedAddressSchema = new Schema<ISavedAddress>(
-	{
-		fullName: String,
-		phone: String,
-		addressLine: String,
-		city: String,
-		state: String,
-		pincode: String,
-	},
-	{ _id: false },
-);
+const savedAddressSchema = new Schema<ISavedAddress>({
+	label: String,
+	fullName: String,
+	phone: String,
+	addressLine: String,
+	city: String,
+	state: String,
+	pincode: String,
+	isDefault: { type: Boolean, default: false },
+});
 
 const userSchema = new Schema<IUser>(
 	{
@@ -40,7 +42,7 @@ const userSchema = new Schema<IUser>(
 			type: String,
 			default: "customer",
 		},
-		savedAddress: savedAddressSchema,
+		addresses: [savedAddressSchema],
 	},
 	{ timestamps: true },
 );

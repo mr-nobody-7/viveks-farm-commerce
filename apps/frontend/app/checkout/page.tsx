@@ -1,6 +1,6 @@
 "use client";
 
-import { Loader2 } from "lucide-react";
+import { Loader2, MapPin, Plus } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
@@ -19,13 +19,21 @@ import {
 } from "@/components/ui/select";
 import { Separator } from "@/components/ui/separator";
 import { INDIAN_STATES } from "@/lib/constants";
-import { useAuthStore } from "@/lib/stores/auth-store";
+import { type SavedAddress, useAuthStore } from "@/lib/stores/auth-store";
 import { useCartStore } from "@/lib/stores/cart-store";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
 interface RazorpayWindow extends Window {
-	Razorpay: new (options: Record<string, unknown>) => { open: () => void };
+	Razorpay: new (
+		options: Record<string, unknown>,
+	) => {
+		open: () => void;
+		on: (
+			event: string,
+			handler: (resp: Record<string, unknown>) => void,
+		) => void;
+	};
 }
 
 type CouponPricing = {
@@ -41,12 +49,21 @@ const Checkout = () => {
 	const items = useCartStore((state) => state.items);
 	const clearCart = useCartStore((state) => state.clearCart);
 	const user = useAuthStore((state) => state.user);
+	const hasHydrated = useAuthStore((state) => state._hasHydrated);
+	const setUser = useAuthStore((state) => state.setUser);
 	const subtotal = useMemo(
 		() => items.reduce((sum, item) => sum + item.price * item.quantity, 0),
 		[items],
 	);
 	const router = useRouter();
-	const [authChecked, setAuthChecked] = useState(false);
+	const razorpayRef = useRef<{
+		open: () => void;
+		on: (
+			event: string,
+			handler: (resp: Record<string, unknown>) => void,
+		) => void;
+	} | null>(null);
+
 	const [payment, setPayment] = useState("ONLINE");
 	const [loading, setLoading] = useState(false);
 	const [error, setError] = useState("");
@@ -59,19 +76,58 @@ const Checkout = () => {
 	const [allowCOD, setAllowCOD] = useState(false);
 	const [selectedState, setSelectedState] = useState("");
 	const [deliveryCharge, setDeliveryCharge] = useState(49);
-	// Address fields (controlled so "Use saved address" can fill them)
-	const [addrName, setAddrName] = useState(user?.name ?? "");
-	const [addrPhone, setAddrPhone] = useState(user?.mobile ?? "");
+	// Address fields
+	const [addrName, setAddrName] = useState("");
+	const [addrPhone, setAddrPhone] = useState("");
 	const [addrLine, setAddrLine] = useState("");
 	const [addrCity, setAddrCity] = useState("");
 	const [addrPincode, setAddrPincode] = useState("");
 
+	// Multi-address state
+	const [showNewAddrForm, setShowNewAddrForm] = useState(false);
+	const [saveAddress, setSaveAddress] = useState(false);
+	const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
+		null,
+	);
+	const didPrefill = useRef(false);
+
+	const savedAddresses: SavedAddress[] = user?.addresses || [];
+	const defaultAddress =
+		savedAddresses.find((a) => a.isDefault) || savedAddresses[0];
+
 	useEffect(() => {
-		setAuthChecked(true);
+		if (!hasHydrated) return;
 		if (!user) {
 			router.push("/");
+			return;
 		}
-	}, [user, router]);
+		if (didPrefill.current) return;
+		didPrefill.current = true;
+		if (defaultAddress) {
+			setAddrName(defaultAddress.fullName || user.name || "");
+			setAddrPhone(defaultAddress.phone || user.mobile || "");
+			setAddrLine(defaultAddress.addressLine || "");
+			setAddrCity(defaultAddress.city || "");
+			setSelectedState(defaultAddress.state || "");
+			setAddrPincode(defaultAddress.pincode || "");
+			setSelectedAddressId(defaultAddress._id);
+		} else {
+			setAddrName(user.name || "");
+			setAddrPhone(user.mobile || "");
+		}
+	}, [hasHydrated, user, defaultAddress, router]);
+
+	const fillFromAddress = (addr: SavedAddress) => {
+		setAddrName(addr.fullName || "");
+		setAddrPhone(addr.phone || "");
+		setAddrLine(addr.addressLine || "");
+		setAddrCity(addr.city || "");
+		setSelectedState(addr.state || "");
+		setAddrPincode(addr.pincode || "");
+		setSelectedAddressId(addr._id);
+		setShowNewAddrForm(false);
+		toast.success("Address selected");
+	};
 
 	const prevItemsRef = useRef(items);
 
@@ -115,7 +171,7 @@ const Checkout = () => {
 		}
 	}, [allowCOD, payment]);
 
-	if (!authChecked || !user) {
+	if (!hasHydrated || !user) {
 		return null;
 	}
 
@@ -193,6 +249,23 @@ const Checkout = () => {
 		};
 
 		try {
+			// Optionally save new address to account
+			if (saveAddress && showNewAddrForm) {
+				const saveResp = await fetch(`${API_URL}/api/users/addresses`, {
+					method: "POST",
+					credentials: "include",
+					headers: { "Content-Type": "application/json" },
+					body: JSON.stringify({
+						...address,
+						isDefault: savedAddresses.length === 0,
+					}),
+				});
+				if (saveResp.ok) {
+					const updatedUser = await saveResp.json();
+					setUser(updatedUser);
+				}
+			}
+
 			const response = await fetch(`${API_URL}/api/orders`, {
 				method: "POST",
 				credentials: "include",
@@ -242,6 +315,10 @@ const Checkout = () => {
 				order_id: paymentData.razorpayOrderId,
 				name: "Vivek's Farm",
 				description: "Farm Fresh Products",
+				prefill: {
+					name: addrName,
+					contact: addrPhone || user.mobile,
+				},
 				method: {
 					upi: true,
 					card: true,
@@ -284,8 +361,20 @@ const Checkout = () => {
 				},
 			};
 
-			const rzp = new (window as unknown as RazorpayWindow).Razorpay(options);
-			rzp.open();
+			const RazorpayClass = (window as unknown as RazorpayWindow).Razorpay;
+			razorpayRef.current = new RazorpayClass(options);
+			razorpayRef.current.on(
+				"payment.failed",
+				(response: Record<string, unknown>) => {
+					const errObj = response.error as Record<string, unknown> | undefined;
+					setError(
+						(errObj?.description as string) ||
+							"Payment failed. Please try again.",
+					);
+					setLoading(false);
+				},
+			);
+			razorpayRef.current.open();
 		} catch (err) {
 			setError(
 				err instanceof Error
@@ -307,29 +396,66 @@ const Checkout = () => {
 						{/* Shipping */}
 						<Card>
 							<CardContent className="p-6 space-y-4">
-								<div className="flex items-center justify-between">
-									<h3 className="font-semibold text-lg">Shipping Address</h3>
-									{user?.savedAddress?.addressLine && (
-										<Button
+								<h3 className="font-semibold text-lg">Shipping Address</h3>
+
+								{/* Saved address selector */}
+								{savedAddresses.length > 0 && (
+									<div className="space-y-2">
+										{savedAddresses.map((addr) => (
+											<button
+												key={addr._id}
+												type="button"
+												onClick={() => fillFromAddress(addr)}
+												className={`w-full text-left border rounded-lg p-3 transition-colors ${
+													selectedAddressId === addr._id && !showNewAddrForm
+														? "border-primary bg-primary/5"
+														: "border-border hover:border-primary/50"
+												}`}
+											>
+												<div className="flex items-start gap-2">
+													<MapPin className="h-4 w-4 mt-0.5 shrink-0 text-muted-foreground" />
+													<div className="flex-1 min-w-0">
+														<p className="font-medium text-sm">
+															{addr.label || addr.fullName}
+															{addr.isDefault && (
+																<span className="ml-2 text-xs bg-primary/10 text-primary px-1.5 py-0.5 rounded">
+																	Default
+																</span>
+															)}
+														</p>
+														<p className="text-xs text-muted-foreground truncate">
+															{addr.addressLine}, {addr.city}, {addr.state} -{" "}
+															{addr.pincode}
+														</p>
+													</div>
+												</div>
+											</button>
+										))}
+										<button
 											type="button"
-											variant="outline"
-											size="sm"
 											onClick={() => {
-												const sa = user.savedAddress;
-												if (!sa) return;
-												setAddrName(sa.fullName || "");
-												setAddrPhone(sa.phone || "");
-												setAddrLine(sa.addressLine || "");
-												setAddrCity(sa.city || "");
-												setSelectedState(sa.state || "");
-												setAddrPincode(sa.pincode || "");
-												toast.success("Saved address applied");
+												setShowNewAddrForm(true);
+												setSelectedAddressId(null);
+												setAddrName(user.name || "");
+												setAddrPhone(user.mobile || "");
+												setAddrLine("");
+												setAddrCity("");
+												setSelectedState("");
+												setAddrPincode("");
 											}}
+											className={`w-full text-left border border-dashed rounded-lg p-3 text-sm text-muted-foreground hover:border-primary/50 hover:text-foreground flex items-center gap-2 ${
+												showNewAddrForm
+													? "border-primary text-foreground"
+													: "border-border"
+											}`}
 										>
-											Use saved address
-										</Button>
-									)}
-								</div>
+											<Plus className="h-4 w-4" />
+											Use a different address
+										</button>
+									</div>
+								)}
+
+								{/* Address fields */}
 								<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 									<div className="space-y-2">
 										<Label htmlFor="name">Full Name</Label>
@@ -411,6 +537,17 @@ const Checkout = () => {
 										/>
 									</div>
 								</div>
+								{showNewAddrForm && (
+									<label className="flex items-center gap-2 text-sm cursor-pointer">
+										<input
+											type="checkbox"
+											checked={saveAddress}
+											onChange={(e) => setSaveAddress(e.target.checked)}
+											className="rounded"
+										/>
+										Save this address to my account
+									</label>
+								)}
 							</CardContent>
 						</Card>
 

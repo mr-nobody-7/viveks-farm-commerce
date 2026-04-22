@@ -18,7 +18,7 @@ const verifyOtpSchema = z.object({
 
 router.get("/users/me", requireAuth, async (req: AuthRequest, res) => {
 	const user = await User.findById(req.userId)
-		.select("_id mobile name role")
+		.select("_id mobile name role addresses")
 		.lean();
 
 	if (!user) {
