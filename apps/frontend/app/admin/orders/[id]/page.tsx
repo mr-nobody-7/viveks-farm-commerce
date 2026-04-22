@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { useEffect, useState, use } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { CheckCircle2, Circle, XCircle } from "lucide-react";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -35,6 +36,10 @@ interface Order {
 	_id: string;
 	user: User;
 	items: OrderItem[];
+	subtotalAmount: number;
+	deliveryCharge: number;
+	discountAmount: number;
+	couponCode?: string;
 	totalAmount: number;
 	address: Address;
 	status: "PENDING" | "PLACED" | "PACKED" | "SHIPPED" | "DELIVERED" | "CANCELLED";
@@ -212,6 +217,45 @@ export default function AdminOrderDetailPage({ params }: OrderDetailProps) {
 				</div>
 			</div>
 
+			{/* Status Timeline */}
+			{order.status === "CANCELLED" ? (
+				<div className="bg-red-50 border border-red-200 rounded-lg p-4 flex items-center gap-3">
+					<XCircle className="h-6 w-6 text-red-500 shrink-0" />
+					<div>
+						<p className="font-semibold text-red-700">Order Cancelled</p>
+						<p className="text-sm text-red-600">This order was cancelled by the customer.</p>
+					</div>
+				</div>
+			) : (
+				<div className="bg-white rounded-lg border border-gray-200 p-6">
+					<h2 className="text-sm font-semibold text-gray-500 uppercase tracking-wider mb-4">Order Progress</h2>
+					<div className="flex items-center justify-between">
+						{(["PLACED", "PACKED", "SHIPPED", "DELIVERED"] as const).map((step, i, arr) => {
+							const steps = ["PLACED", "PACKED", "SHIPPED", "DELIVERED"];
+							const currentIdx = steps.indexOf(order.status);
+							const stepIdx = steps.indexOf(step);
+							const isDone = stepIdx <= currentIdx;
+							return (
+								<div key={step} className="flex items-center flex-1">
+									<div className="flex flex-col items-center gap-1">
+										{isDone
+											? <CheckCircle2 className="h-6 w-6 text-green-600" />
+											: <Circle className="h-6 w-6 text-gray-300" />
+										}
+										<span className={`text-xs font-medium ${isDone ? "text-green-700" : "text-gray-400"}`}>
+											{step}
+										</span>
+									</div>
+									{i < arr.length - 1 && (
+										<div className={`flex-1 h-0.5 mx-2 ${stepIdx < currentIdx ? "bg-green-400" : "bg-gray-200"}`} />
+									)}
+								</div>
+							);
+						})}
+					</div>
+				</div>
+			)}
+
 			<div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
 				{/* Left Column - Order Details */}
 				<div className="lg:col-span-2 space-y-6">
@@ -334,9 +378,19 @@ export default function AdminOrderDetailPage({ params }: OrderDetailProps) {
 						<div className="mt-4 pt-4 border-t space-y-2">
 							<div className="flex justify-between text-sm">
 								<span className="text-gray-500">Subtotal</span>
-								<span>₹{itemsSubtotal.toLocaleString()}</span>
+								<span>₹{(order.subtotalAmount ?? itemsSubtotal).toLocaleString()}</span>
 							</div>
-							<div className="flex justify-between font-semibold text-lg">
+							<div className="flex justify-between text-sm">
+								<span className="text-gray-500">Delivery</span>
+								<span>₹{(order.deliveryCharge ?? 0).toLocaleString()}</span>
+							</div>
+							{(order.discountAmount ?? 0) > 0 && (
+								<div className="flex justify-between text-sm text-green-700">
+									<span>Coupon {order.couponCode ? `(${order.couponCode})` : "Discount"}</span>
+									<span>−₹{order.discountAmount.toLocaleString()}</span>
+								</div>
+							)}
+							<div className="flex justify-between font-semibold text-lg border-t pt-2">
 								<span>Total</span>
 								<span>₹{order.totalAmount.toLocaleString()}</span>
 							</div>
