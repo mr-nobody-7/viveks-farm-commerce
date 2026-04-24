@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import {
@@ -15,6 +16,7 @@ import {
 	XAxis,
 } from "recharts";
 import { MetricCardSkeleton } from "@/components/Skeletons";
+import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import {
 	type ChartConfig,
@@ -53,6 +55,16 @@ const paymentConfig = {
 	PENDING: { label: "Pending", color: "hsl(45, 95%, 50%)" },
 } satisfies ChartConfig;
 
+interface Category {
+	_id: string;
+	name: string;
+	slug: string;
+}
+
+interface ProductSummary {
+	category: { _id: string };
+}
+
 export default function AdminDashboardPage() {
 	const [metrics, setMetrics] = useState<DashboardMetrics | null>(null);
 	const [loading, setLoading] = useState(true);
@@ -62,6 +74,7 @@ export default function AdminDashboardPage() {
 	const [settingsUpdating, setSettingsUpdating] = useState(false);
 	const [deliveryChargeInput, setDeliveryChargeInput] = useState("");
 	const [deliveryChargeUpdating, setDeliveryChargeUpdating] = useState(false);
+	const [emptyCategoryNames, setEmptyCategoryNames] = useState<string[]>([]);
 	const router = useRouter();
 
 	useEffect(() => {
@@ -100,6 +113,21 @@ export default function AdminDashboardPage() {
 					const settingsData = (await settingsRes.json()) as AdminSettings;
 					setSettings(settingsData);
 					setDeliveryChargeInput(String(settingsData.deliveryCharge ?? 49));
+				}
+
+				// Compute empty categories
+				const [categoriesRes, productsRes] = await Promise.all([
+					fetch(`${API_URL}/api/categories`),
+					fetch(`${API_URL}/api/products`),
+				]);
+				if (categoriesRes.ok && productsRes.ok) {
+					const cats = (await categoriesRes.json()) as Category[];
+					const prods = (await productsRes.json()) as ProductSummary[];
+					const filledCatIds = new Set(prods.map((p) => p.category?._id));
+					const emptyNames = cats
+						.filter((c) => !filledCatIds.has(c._id))
+						.map((c) => c.name);
+					setEmptyCategoryNames(emptyNames);
 				}
 			} catch (_err) {
 				setError("Failed to load dashboard metrics");
@@ -191,6 +219,61 @@ export default function AdminDashboardPage() {
 	return (
 		<div className="space-y-6">
 			<h1 className="text-3xl font-bold">Dashboard</h1>
+
+			{/* Needs Attention Widget */}
+			{(emptyCategoryNames.length > 0 || (metrics?.pendingOrders ?? 0) > 0) && (
+				<Card className="border-orange-200 bg-orange-50 dark:bg-orange-950/20">
+					<CardHeader className="pb-2">
+						<CardTitle className="text-orange-700 dark:text-orange-400 text-base flex items-center gap-2">
+							⚠️ Needs Attention
+						</CardTitle>
+					</CardHeader>
+					<CardContent>
+						<ul className="space-y-2 text-sm">
+							{(metrics?.pendingOrders ?? 0) > 0 && (
+								<li className="flex items-center gap-2">
+									<Badge variant="destructive" className="text-xs">
+										{metrics?.pendingOrders}
+									</Badge>
+									<span className="text-muted-foreground">
+										order{metrics?.pendingOrders !== 1 ? "s" : ""} waiting to be
+										processed
+									</span>
+									<Link
+										href="/admin/orders"
+										className="text-primary hover:underline ml-auto text-xs"
+									>
+										View Orders →
+									</Link>
+								</li>
+							)}
+							{emptyCategoryNames.length > 0 && (
+								<li className="flex items-start gap-2">
+									<Badge
+										variant="outline"
+										className="text-xs mt-0.5 border-orange-400 text-orange-700"
+									>
+										{emptyCategoryNames.length}
+									</Badge>
+									<span className="text-muted-foreground">
+										categor{emptyCategoryNames.length !== 1 ? "ies" : "y"} with
+										no products:{" "}
+										<span className="font-medium text-foreground">
+											{emptyCategoryNames.join(", ")}
+										</span>
+									</span>
+									<Link
+										href="/admin/products"
+										className="text-primary hover:underline ml-auto text-xs shrink-0"
+									>
+										Add Products →
+									</Link>
+								</li>
+							)}
+						</ul>
+					</CardContent>
+				</Card>
+			)}
 
 			<div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
 				{/* COD Toggle */}
