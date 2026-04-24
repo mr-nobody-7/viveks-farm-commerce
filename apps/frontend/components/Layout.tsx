@@ -2,6 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import type { ReactNode } from "react";
+import { AnnouncementBar } from "./AnnouncementBar";
 import { Footer } from "./Footer";
 import { Header } from "./Header";
 import { WhatsAppButton } from "./WhatsAppButton";
@@ -16,6 +17,7 @@ const Layout = ({ children }: { children: ReactNode }) => {
 
 	return (
 		<div className="flex min-h-screen flex-col">
+			<AnnouncementBar />
 			<Header />
 			<main className="flex-1">{children}</main>
 			<Footer />
