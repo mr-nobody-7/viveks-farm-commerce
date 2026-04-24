@@ -5,6 +5,7 @@ import {
 	CheckCircle2,
 	Circle,
 	Loader2,
+	RefreshCw,
 	XCircle,
 } from "lucide-react";
 import Image from "next/image";
@@ -25,6 +26,7 @@ import {
 } from "@/components/ui/dialog";
 import { Separator } from "@/components/ui/separator";
 import { useAuthStore } from "@/lib/stores/auth-store";
+import { useCartStore } from "@/lib/stores/cart-store";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -94,6 +96,7 @@ export default function OrderDetail({ params }: OrderDetailProps) {
 	const { id } = use(params);
 	const user = useAuthStore((state) => state.user);
 	const router = useRouter();
+	const addItem = useCartStore((state) => state.addItem);
 	const [order, setOrder] = useState<Order | null>(null);
 	const [loading, setLoading] = useState(true);
 	const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
@@ -125,6 +128,23 @@ export default function OrderDetail({ params }: OrderDetailProps) {
 
 		fetchOrder();
 	}, [id, user, router]);
+
+	const handleReorder = () => {
+		if (!order) return;
+		for (const item of order.items) {
+			addItem({
+				productId: item.productId,
+				slug: item.productId,
+				name: item.name,
+				image: item.image || "/placeholder.svg",
+				variantLabel: item.variantLabel,
+				price: item.price,
+				quantity: item.quantity,
+			});
+		}
+		toast.success("Items added to cart!");
+		router.push("/cart");
+	};
 
 	const handleCancel = async () => {
 		if (!order) return;
@@ -222,6 +242,13 @@ export default function OrderDetail({ params }: OrderDetailProps) {
 										onClick={() => setCancelDialogOpen(true)}
 									>
 										Cancel Order
+									</Button>
+								)}
+								{(order.status === "DELIVERED" ||
+									order.status === "CANCELLED") && (
+									<Button variant="outline" size="sm" onClick={handleReorder}>
+										<RefreshCw className="h-4 w-4 mr-1" />
+										Reorder
 									</Button>
 								)}
 							</div>
