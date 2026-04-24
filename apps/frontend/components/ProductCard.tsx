@@ -1,6 +1,6 @@
 "use client";
 
-import { Minus, Plus, ShoppingCart } from "lucide-react";
+import { Heart, Minus, Plus, ShoppingCart } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
 import { toast } from "sonner";
@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import type { Product } from "@/lib/api";
 import { useCartStore } from "@/lib/stores/cart-store";
+import { useWishlistStore } from "@/lib/stores/wishlist-store";
 
 interface ProductCardProps {
 	product: Product;
@@ -19,6 +20,9 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 	const addItem = useCartStore((state) => state.addItem);
 	const updateQuantity = useCartStore((state) => state.updateQuantity);
 	const items = useCartStore((state) => state.items);
+	const toggleWishlist = useWishlistStore((state) => state.toggleItem);
+	const isWishlisted = useWishlistStore((state) => state.isWishlisted);
+	const wishlisted = isWishlisted(product._id);
 
 	const cartItem = items.find(
 		(i) => i.productId === product._id && i.variantLabel === variant.label,
@@ -74,6 +78,34 @@ export const ProductCard = ({ product }: ProductCardProps) => {
 					<Badge className="absolute top-2 right-2" variant="secondary">
 						{variant.label}
 					</Badge>
+					<button
+						type="button"
+						className="absolute bottom-2 right-2 flex h-8 w-8 items-center justify-center rounded-full bg-background/80 backdrop-blur-sm shadow transition-colors hover:bg-background"
+						onClick={(e) => {
+							e.preventDefault();
+							e.stopPropagation();
+							toggleWishlist({
+								productId: product._id,
+								slug: product.slug,
+								name: product.name,
+								image: product.images[0] || "/placeholder.svg",
+								price: variant.price,
+								category: product.category?.name ?? "",
+							});
+							toast.success(
+								wishlisted ? "Removed from wishlist" : "Added to wishlist",
+							);
+						}}
+						aria-label={wishlisted ? "Remove from wishlist" : "Add to wishlist"}
+					>
+						<Heart
+							className={`h-4 w-4 transition-colors ${
+								wishlisted
+									? "fill-red-500 text-red-500"
+									: "text-muted-foreground"
+							}`}
+						/>
+					</button>
 					{discountPercentage > 0 && (
 						<Badge className="absolute top-2 left-2" variant="destructive">
 							{discountPercentage}% OFF

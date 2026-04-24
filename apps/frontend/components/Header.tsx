@@ -1,6 +1,7 @@
 "use client";
 
 import {
+	Heart,
 	Leaf,
 	LogOut,
 	Package,
@@ -21,6 +22,7 @@ import {
 import { ICON_SIZE } from "@/lib/constants";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { useCartStore } from "@/lib/stores/cart-store";
+import { useWishlistStore } from "@/lib/stores/wishlist-store";
 import { HeaderNavigationMenu } from "./HeaderNavigationMenu";
 import { LoginModal } from "./LoginModal";
 import { Button } from "./ui/button";
@@ -29,6 +31,7 @@ export const Header = () => {
 	const items = useCartStore((state) => state.items);
 	const user = useAuthStore((state) => state.user);
 	const logout = useAuthStore((state) => state.logout);
+	const wishlistItems = useWishlistStore((state) => state.items);
 	const [showLogin, setShowLogin] = useState(false);
 
 	// Derive total count from items
@@ -109,6 +112,21 @@ export const Header = () => {
 									</Button>
 								</>
 							)}
+							<Button
+								variant="ghost"
+								className="relative h-10 w-10"
+								size="icon"
+								asChild
+							>
+								<Link href="/wishlist">
+									<Heart size={ICON_SIZE.HEADER} />
+									{wishlistItems.length > 0 && (
+										<span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs rounded-full h-5 w-5 flex items-center justify-center">
+											{wishlistItems.length}
+										</span>
+									)}
+								</Link>
+							</Button>
 							<Button
 								variant="ghost"
 								className="relative h-10 w-10"
