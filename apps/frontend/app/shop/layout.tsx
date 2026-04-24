@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import type { ReactNode } from "react";
 
 export const metadata: Metadata = {
 	title: "Shop Fresh Farm Products | Vivek's Farm",
@@ -12,4 +13,6 @@ export const metadata: Metadata = {
 	},
 };
 
-export { default } from "./page";
+export default function ShopLayout({ children }: { children: ReactNode }) {
+	return <>{children}</>;
+}
