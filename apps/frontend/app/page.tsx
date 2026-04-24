@@ -19,8 +19,13 @@ import {
 	Wheat,
 } from "lucide-react";
 import Link from "next/link";
+import { HeroCarousel } from "@/components/HeroCarousel";
 import { ProductCard } from "@/components/ProductCard";
-import { ProductCardSkeleton } from "@/components/Skeletons";
+import {
+	CategoryCardSkeleton,
+	ProductCardSkeleton,
+	TestimonialSkeleton,
+} from "@/components/Skeletons";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -111,46 +116,58 @@ export default function Home() {
 
 	return (
 		<>
-			{/* Hero */}
-			<section className="relative bg-gradient-to-br from-primary/10 via-background to-secondary/20 overflow-hidden">
-				<div className="absolute inset-0 bg-[radial-gradient(ellipse_at_top_right,_var(--tw-gradient-stops))] from-primary/5 via-transparent to-transparent pointer-events-none" />
-				<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-20 md:py-32">
-					<div className="max-w-2xl space-y-6">
-						<Badge variant="secondary" className="text-sm px-3 py-1">
-							🌿 100% Natural & Farm Fresh
-						</Badge>
-						<h1 className="text-4xl md:text-6xl font-bold tracking-tight text-foreground leading-tight">
-							Fresh from our farm{" "}
-							<span className="text-primary">to your table</span>
-						</h1>
-						<p className="text-lg text-muted-foreground max-w-lg">
-							Discover pure ghee, handmade pickles, traditional sweets,
-							cold-pressed oils, and more — all crafted with care at Vivek\'s
-							Farm.
-						</p>
-						<div className="flex flex-wrap gap-3">
-							<Button size="lg" asChild>
-								<Link href="/shop">Shop Now</Link>
-							</Button>
-							<Button size="lg" variant="outline" asChild>
-								<Link href="/about-us">Our Story</Link>
-							</Button>
-						</div>
-						<div className="flex flex-wrap items-center gap-4 pt-2 text-sm text-muted-foreground">
-							<span className="flex items-center gap-1">
-								<Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-								4.9/5 from 500+ customers
-							</span>
-							<span>·</span>
-							<span>Free delivery above ₹500</span>
-							<span>·</span>
-							<span>No preservatives</span>
-						</div>
+			{/* ——— Hero Carousel ——— */}
+			<HeroCarousel />
+
+			{/* ——— Promo Banner Strip ——— */}
+			<div className="bg-primary text-primary-foreground">
+				<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-3">
+					<div className="flex flex-wrap items-center justify-center gap-4 sm:gap-8 text-sm font-medium text-center">
+						<span className="flex items-center gap-2">
+							<Truck className="h-4 w-4 shrink-0" />
+							Free delivery on orders above ₹500
+						</span>
+						<span className="hidden sm:block opacity-40">|</span>
+						<span className="flex items-center gap-2">
+							<Shield className="h-4 w-4 shrink-0" />
+							FSSAI Certified · No Preservatives
+						</span>
+						<span className="hidden sm:block opacity-40">|</span>
+						<span className="flex items-center gap-2">
+							<Star className="h-4 w-4 fill-current shrink-0" />
+							4.9★ Rated by 500+ customers
+						</span>
 					</div>
 				</div>
-			</section>
+			</div>
 
-			{/* Categories */}
+			{/* ——— Offer Banner ——— */}
+			<div className="bg-amber-50 border-b border-amber-100">
+				<div className="container mx-auto px-4 sm:px-6 lg:px-8 py-5">
+					<div className="flex flex-col sm:flex-row items-center justify-between gap-4">
+						<div className="text-center sm:text-left">
+							<p className="text-lg font-bold text-amber-900">
+								🎁 New Customer? Get 10% off your first order!
+							</p>
+							<p className="text-sm text-amber-700 mt-0.5">
+								Use code{" "}
+								<span className="font-mono font-bold bg-amber-200 px-1.5 py-0.5 rounded">
+									WELCOME10
+								</span>{" "}
+								at checkout
+							</p>
+						</div>
+						<Button
+							asChild
+							className="bg-amber-600 hover:bg-amber-700 text-white shrink-0"
+						>
+							<Link href="/shop">Shop Now →</Link>
+						</Button>
+					</div>
+				</div>
+			</div>
+
+			{/* ——— Categories ——— */}
 			<section className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
 				<div className="text-center mb-10">
 					<h2 className="text-3xl font-bold">Shop by Category</h2>
@@ -161,12 +178,7 @@ export default function Home() {
 				{categoriesLoading ? (
 					<div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
 						{["c1", "c2", "c3", "c4", "c5", "c6"].map((id) => (
-							<div key={id} className="animate-pulse">
-								<div className="rounded-xl border bg-card p-4 space-y-3 text-center">
-									<div className="mx-auto h-12 w-12 rounded-full bg-muted" />
-									<div className="h-4 bg-muted rounded mx-auto w-3/4" />
-								</div>
-							</div>
+							<CategoryCardSkeleton key={id} />
 						))}
 					</div>
 				) : (
@@ -190,7 +202,7 @@ export default function Home() {
 				)}
 			</section>
 
-			{/* Featured Products */}
+			{/* ——— Featured Products ——— */}
 			<section className="bg-muted/30 py-16">
 				<div className="container mx-auto px-4 sm:px-6 lg:px-8">
 					<div className="flex items-center justify-between mb-8">
@@ -220,10 +232,47 @@ export default function Home() {
 				</div>
 			</section>
 
-			{/* Trust Section */}
+			{/* ——— Mid-page Banner ——— */}
+			<section className="py-14 bg-gradient-to-r from-green-900 to-emerald-800 text-white relative overflow-hidden">
+				<div
+					aria-hidden="true"
+					className="absolute inset-0 opacity-10 text-[400px] flex items-center justify-end pr-10 leading-none select-none pointer-events-none"
+				>
+					🌿
+				</div>
+				<div className="container mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+					<div className="max-w-2xl space-y-4">
+						<Badge className="bg-white/20 text-white border-white/30 hover:bg-white/30">
+							Limited Time
+						</Badge>
+						<h2 className="text-3xl md:text-4xl font-bold">
+							Pure Ghee Bundle — Save 15%
+						</h2>
+						<p className="text-white/80 text-lg">
+							Get our A2 Bilona Ghee in 500ml + 1L combo pack. Made fresh every
+							week. Stock limited.
+						</p>
+						<div className="flex flex-wrap gap-3 pt-2">
+							<Button size="lg" variant="secondary" asChild>
+								<Link href="/shop/ghee">Grab the Bundle</Link>
+							</Button>
+							<Button
+								size="lg"
+								variant="outline"
+								className="border-white/40 text-white hover:bg-white/10"
+								asChild
+							>
+								<Link href="/shop">Browse All</Link>
+							</Button>
+						</div>
+					</div>
+				</div>
+			</section>
+
+			{/* ——— Why Us ——— */}
 			<section className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
 				<div className="text-center mb-10">
-					<h2 className="text-3xl font-bold">Why Vivek\'s Farm?</h2>
+					<h2 className="text-3xl font-bold">Why Vivek's Farm?</h2>
 					<p className="text-muted-foreground mt-2">
 						We believe in quality you can taste
 					</p>
@@ -248,7 +297,7 @@ export default function Home() {
 				</div>
 			</section>
 
-			{/* Testimonials */}
+			{/* ——— Testimonials ——— */}
 			<section className="bg-primary/5 py-16">
 				<div className="container mx-auto px-4 sm:px-6 lg:px-8">
 					<div className="text-center mb-10">
@@ -257,35 +306,43 @@ export default function Home() {
 							Trusted by thousands of happy customers across India
 						</p>
 					</div>
-					<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-						{testimonials.map((t) => (
-							<Card key={t.name} className="bg-background">
-								<CardContent className="p-5 space-y-3">
-									<div className="flex gap-0.5">
-										{Array.from({ length: t.rating }).map((_, i) => (
-											<Star
-												key={`${t.name}-star-${i}`}
-												className="h-4 w-4 fill-yellow-400 text-yellow-400"
-											/>
-										))}
-									</div>
-									<p className="text-sm text-muted-foreground italic">
-										"{t.text}"
-									</p>
-									<div>
-										<p className="text-sm font-semibold">{t.name}</p>
-										<p className="text-xs text-muted-foreground">
-											{t.location}
+					{isLoading ? (
+						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+							{["t1", "t2", "t3", "t4"].map((id) => (
+								<TestimonialSkeleton key={id} />
+							))}
+						</div>
+					) : (
+						<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+							{testimonials.map((t) => (
+								<Card key={t.name} className="bg-background">
+									<CardContent className="p-5 space-y-3">
+										<div className="flex gap-0.5">
+											{Array.from({ length: t.rating }).map((_, i) => (
+												<Star
+													key={`${t.name}-star-${i}`}
+													className="h-4 w-4 fill-yellow-400 text-yellow-400"
+												/>
+											))}
+										</div>
+										<p className="text-sm text-muted-foreground italic">
+											"{t.text}"
 										</p>
-									</div>
-								</CardContent>
-							</Card>
-						))}
-					</div>
+										<div>
+											<p className="text-sm font-semibold">{t.name}</p>
+											<p className="text-xs text-muted-foreground">
+												{t.location}
+											</p>
+										</div>
+									</CardContent>
+								</Card>
+							))}
+						</div>
+					)}
 				</div>
 			</section>
 
-			{/* CTA Banner */}
+			{/* ——— CTA Banner ——— */}
 			<section className="container mx-auto px-4 sm:px-6 lg:px-8 py-16">
 				<div className="rounded-2xl bg-primary text-primary-foreground px-8 py-12 text-center space-y-4">
 					<h2 className="text-3xl font-bold">Ready to taste the difference?</h2>
