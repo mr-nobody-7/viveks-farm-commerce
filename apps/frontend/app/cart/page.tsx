@@ -64,7 +64,10 @@ const Cart = () => {
 					{items.map((item) => (
 						<Card key={`${item.productId}-${item.variantLabel}`}>
 							<CardContent className="p-4 flex flex-col sm:flex-row gap-4">
-								<div className="h-20 w-20 rounded-md bg-muted overflow-hidden shrink-0">
+								<Link
+									href={`/product/${item.slug}`}
+									className="h-20 w-20 rounded-md bg-muted overflow-hidden shrink-0 block"
+								>
 									<Image
 										src={item.image}
 										alt={item.name}
@@ -72,9 +75,14 @@ const Cart = () => {
 										height={80}
 										className="h-full w-full object-cover"
 									/>
-								</div>
+								</Link>
 								<div className="flex-1 min-w-0">
-									<h3 className="font-semibold truncate">{item.name}</h3>
+									<Link
+										href={`/product/${item.slug}`}
+										className="font-semibold truncate block hover:text-primary"
+									>
+										{item.name}
+									</Link>
 									<p className="text-sm text-muted-foreground">
 										{item.variantLabel}
 									</p>

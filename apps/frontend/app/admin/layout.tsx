@@ -169,7 +169,7 @@ export default function AdminLayout({
 				</div>
 			</div>
 
-			<div className="lg:flex min-h-[calc(100vh-109px)] lg:min-h-screen">
+			<div className="lg:flex min-h-[calc(100vh-109px)] lg:min-h-screen min-w-0">
 				<aside className="hidden lg:block w-64 bg-white border-r border-gray-200">
 					<div className="p-6">
 						<h2 className="text-2xl font-bold text-green-600">Vivek's Farm</h2>
@@ -217,7 +217,7 @@ export default function AdminLayout({
 					</nav>
 				</aside>
 
-				<main className="flex-1 p-4 sm:p-6 lg:p-8">{children}</main>
+				<main className="flex-1 min-w-0 p-4 sm:p-6 lg:p-8">{children}</main>
 			</div>
 		</div>
 	);

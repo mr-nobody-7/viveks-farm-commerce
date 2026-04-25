@@ -285,7 +285,7 @@ export default function AdminOrdersPage() {
 	);
 
 	return (
-		<div className="space-y-6">
+		<div className="space-y-6 min-w-0 max-w-full overflow-x-hidden">
 			<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
 				<h1 className="text-3xl font-bold">Orders</h1>
 				<div className="text-sm text-gray-500">
@@ -468,9 +468,9 @@ export default function AdminOrdersPage() {
 					</p>
 				</div>
 			) : (
-				<div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
-					<div className="overflow-x-auto">
-						<table className="min-w-400 divide-y divide-gray-200">
+				<div className="bg-white rounded-lg border border-gray-200 max-w-full overflow-hidden">
+					<div className="w-full max-w-full overflow-x-auto">
+						<table className="min-w-350 divide-y divide-gray-200">
 							<thead className="bg-gray-50">
 								<tr>
 									<th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
