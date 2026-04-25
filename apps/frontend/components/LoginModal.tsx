@@ -14,6 +14,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { api } from "@/lib/api";
 import { useAuthStore } from "@/lib/stores/auth-store";
+import { useCartStore } from "@/lib/stores/cart-store";
+import { useWishlistStore } from "@/lib/stores/wishlist-store";
+import { attachGuestSelectionsToUser } from "@/lib/user-scoped-storage";
 
 const RESEND_COOLDOWN = 30;
 
@@ -32,6 +35,12 @@ export const LoginModal = ({ open, onOpenChange }: LoginModalProps) => {
 	const [resendCountdown, setResendCountdown] = useState(0);
 	const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 	const setUser = useAuthStore((state) => state.setUser);
+	const cartItems = useCartStore((state) => state.items);
+	const addCartItem = useCartStore((state) => state.addItem);
+	const clearCart = useCartStore((state) => state.clearCart);
+	const wishlistItems = useWishlistStore((state) => state.items);
+	const addWishlistItem = useWishlistStore((state) => state.addItem);
+	const clearWishlist = useWishlistStore((state) => state.clearWishlist);
 
 	const startResendTimer = () => {
 		setResendCountdown(RESEND_COOLDOWN);
@@ -83,6 +92,22 @@ export const LoginModal = ({ open, onOpenChange }: LoginModalProps) => {
 
 		try {
 			const response = await api.verifyOTP(mobile, otp);
+			const { mergedCart, mergedWishlist } = attachGuestSelectionsToUser(
+				response.user.mobile,
+				cartItems,
+				wishlistItems,
+			);
+
+			clearCart();
+			for (const item of mergedCart) {
+				addCartItem(item);
+			}
+
+			clearWishlist();
+			for (const item of mergedWishlist) {
+				addWishlistItem(item);
+			}
+
 			setUser(response.user);
 			onOpenChange(false);
 			setMobile("");
@@ -150,9 +175,13 @@ export const LoginModal = ({ open, onOpenChange }: LoginModalProps) => {
 					</form>
 				) : (
 					<form onSubmit={handleVerifyOTP} className="space-y-4">
+						<div className="space-y-2">
+							<Label htmlFor="mobile-readonly">Mobile Number</Label>
+							<Input id="mobile-readonly" type="tel" value={mobile} disabled />
+						</div>
 						{devOtp && (
 							<div className="rounded-md border border-amber-300 bg-amber-100 px-3 py-2 text-sm text-amber-900">
-								<span className="font-medium">Demo OTP:</span> {devOtp}
+								<span className="font-medium">🔐 Demo OTP:</span> {devOtp}
 							</div>
 						)}
 						<div className="space-y-2">

@@ -17,7 +17,10 @@ export const requireAdmin = (
 	}
 
 	try {
-		const secret = process.env.JWT_SECRET || "fallback-secret-key";
+		const secret =
+			process.env.ADMIN_JWT_SECRET ||
+			process.env.JWT_SECRET ||
+			"fallback-secret-key";
 		const decoded = jwt.verify(token, secret) as {
 			adminId: string;
 		};

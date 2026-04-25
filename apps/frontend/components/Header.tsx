@@ -23,21 +23,34 @@ import { ICON_SIZE } from "@/lib/constants";
 import { useAuthStore } from "@/lib/stores/auth-store";
 import { useCartStore } from "@/lib/stores/cart-store";
 import { useWishlistStore } from "@/lib/stores/wishlist-store";
+import {
+	saveCartForUser,
+	saveWishlistForUser,
+} from "@/lib/user-scoped-storage";
 import { HeaderNavigationMenu } from "./HeaderNavigationMenu";
 import { LoginModal } from "./LoginModal";
 import { Button } from "./ui/button";
 
 export const Header = () => {
 	const items = useCartStore((state) => state.items);
+	const clearCart = useCartStore((state) => state.clearCart);
 	const user = useAuthStore((state) => state.user);
 	const logout = useAuthStore((state) => state.logout);
 	const wishlistItems = useWishlistStore((state) => state.items);
+	const clearWishlist = useWishlistStore((state) => state.clearWishlist);
 	const [showLogin, setShowLogin] = useState(false);
 
 	// Derive total count from items
 	const totalItems = items.reduce((sum, item) => sum + item.quantity, 0);
 
 	const handleLogout = () => {
+		if (user?.mobile) {
+			saveCartForUser(user.mobile, items);
+			saveWishlistForUser(user.mobile, wishlistItems);
+		}
+
+		clearCart();
+		clearWishlist();
 		logout();
 	};
 

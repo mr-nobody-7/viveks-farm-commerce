@@ -5,6 +5,7 @@ import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
+import { LoginModal } from "@/components/LoginModal";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -89,6 +90,7 @@ const Checkout = () => {
 	const [selectedAddressId, setSelectedAddressId] = useState<string | null>(
 		null,
 	);
+	const [showLoginModal, setShowLoginModal] = useState(false);
 	const didPrefill = useRef(false);
 
 	const savedAddresses: SavedAddress[] = user?.addresses || [];
@@ -97,10 +99,7 @@ const Checkout = () => {
 
 	useEffect(() => {
 		if (!hasHydrated) return;
-		if (!user) {
-			router.push("/");
-			return;
-		}
+		if (!user) return;
 		if (didPrefill.current) return;
 		didPrefill.current = true;
 		if (defaultAddress) {
@@ -115,7 +114,13 @@ const Checkout = () => {
 			setAddrName(user.name || "");
 			setAddrPhone(user.mobile || "");
 		}
-	}, [hasHydrated, user, defaultAddress, router]);
+	}, [hasHydrated, user, defaultAddress]);
+
+	useEffect(() => {
+		if (hasHydrated && !user) {
+			setShowLoginModal(true);
+		}
+	}, [hasHydrated, user]);
 
 	const fillFromAddress = (addr: SavedAddress) => {
 		setAddrName(addr.fullName || "");
@@ -171,8 +176,23 @@ const Checkout = () => {
 		}
 	}, [allowCOD, payment]);
 
-	if (!hasHydrated || !user) {
+	if (!hasHydrated) {
 		return null;
+	}
+
+	if (!user) {
+		return (
+			<div className="container mx-auto px-4 py-20 text-center space-y-4 sm:px-6 lg:px-8">
+				<h2 className="text-2xl font-bold">Login Required</h2>
+				<p className="text-muted-foreground">
+					Please enter your mobile number and OTP to continue checkout.
+				</p>
+				<Button onClick={() => setShowLoginModal(true)}>
+					Login to Continue
+				</Button>
+				<LoginModal open={showLoginModal} onOpenChange={setShowLoginModal} />
+			</div>
+		);
 	}
 
 	if (items.length === 0) {
@@ -308,8 +328,13 @@ const Checkout = () => {
 
 			const paymentData = await paymentResponse.json();
 
+			const razorpayKeyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+			if (!razorpayKeyId) {
+				throw new Error("Razorpay key is not configured for frontend");
+			}
+
 			const options = {
-				key: paymentData.key,
+				key: razorpayKeyId,
 				amount: paymentData.amount,
 				currency: paymentData.currency,
 				order_id: paymentData.razorpayOrderId,

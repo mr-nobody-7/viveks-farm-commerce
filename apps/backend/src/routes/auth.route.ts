@@ -16,6 +16,15 @@ const verifyOtpSchema = z.object({
 	otp: z.string().length(6, "OTP must be 6 digits"),
 });
 
+const isProduction = process.env.NODE_ENV === "production";
+
+const cookieOptions = {
+	httpOnly: true,
+	secure: isProduction,
+	sameSite: isProduction ? ("none" as const) : ("lax" as const),
+	maxAge: 7 * 24 * 60 * 60 * 1000,
+};
+
 router.get("/users/me", requireAuth, async (req: AuthRequest, res) => {
 	const user = await User.findById(req.userId)
 		.select("_id mobile name role addresses")
@@ -50,7 +59,10 @@ router.post("/auth/request-otp", async (req, res) => {
 
 	console.log(`OTP for ${mobile}: ${otp}`);
 
-	res.json({ message: "OTP sent", devOtp: otp });
+	res.json({
+		message: "OTP sent",
+		...(process.env.NODE_ENV !== "production" && { devOtp: otp }),
+	});
 });
 
 router.post("/auth/verify-otp", async (req, res) => {
@@ -77,15 +89,20 @@ router.post("/auth/verify-otp", async (req, res) => {
 	}
 
 	const token = generateToken(user._id.toString());
-	const isProduction = process.env.NODE_ENV === "production";
 
-	res.cookie("token", token, {
+	res.cookie("token", token, cookieOptions);
+
+	res.json({ message: "Login successful", user });
+});
+
+router.post("/auth/logout", (_req, res) => {
+	res.clearCookie("token", {
 		httpOnly: true,
 		secure: isProduction,
 		sameSite: isProduction ? "none" : "lax",
 	});
 
-	res.json({ message: "Login successful", user });
+	res.json({ message: "Logged out" });
 });
 
 export default router;

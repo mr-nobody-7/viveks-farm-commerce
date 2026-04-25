@@ -12,6 +12,18 @@ import { Order } from "../models/order.model";
 import { Product } from "../models/product.model";
 
 const router = Router();
+const isProduction = process.env.NODE_ENV === "production";
+const adminJwtSecret =
+	process.env.ADMIN_JWT_SECRET ||
+	process.env.JWT_SECRET ||
+	"fallback-secret-key";
+
+const cookieOptions = {
+	httpOnly: true,
+	secure: isProduction,
+	sameSite: isProduction ? ("none" as const) : ("lax" as const),
+	maxAge: 7 * 24 * 60 * 60 * 1000,
+};
 
 // Configure Cloudinary
 cloudinary.config({
@@ -66,18 +78,11 @@ router.post("/admin/login", async (req, res) => {
 		return res.status(400).json({ message: "Invalid credentials" });
 	}
 
-	const token = jwt.sign(
-		{ adminId: admin._id },
-		process.env.JWT_SECRET || "fallback-secret-key",
-		{ expiresIn: "7d" },
-	);
-	const isProduction = process.env.NODE_ENV === "production";
-
-	res.cookie("adminToken", token, {
-		httpOnly: true,
-		secure: isProduction,
-		sameSite: isProduction ? "none" : "lax",
+	const token = jwt.sign({ adminId: admin._id }, adminJwtSecret, {
+		expiresIn: "7d",
 	});
+
+	res.cookie("adminToken", token, cookieOptions);
 
 	const loginTime = new Date().toLocaleString("en-IN", {
 		dateStyle: "medium",
@@ -100,7 +105,11 @@ router.post("/admin/login", async (req, res) => {
 
 // Admin Logout
 router.post("/admin/logout", (_req, res) => {
-	res.clearCookie("adminToken");
+	res.clearCookie("adminToken", {
+		httpOnly: true,
+		secure: isProduction,
+		sameSite: isProduction ? "none" : "lax",
+	});
 	res.json({ message: "Logged out" });
 });
 
