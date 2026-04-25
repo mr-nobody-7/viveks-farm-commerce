@@ -1,5 +1,18 @@
 import { Heart, Leaf, Shield, Users } from "lucide-react";
+import type { Metadata } from "next";
 import { Card, CardContent } from "@/components/ui/card";
+
+export const metadata: Metadata = {
+	title: "About Us",
+	description:
+		"Learn the story of Vivek's Farm — how we bring pure A2 ghee, traditional pickles, raw honey, and natural sweets directly from our farmland to your kitchen with no preservatives.",
+	openGraph: {
+		title: "About Us | Vivek's Farm",
+		description:
+			"Family-run farm producing 100% natural ghee, pickles, honey, and sweets using traditional recipes passed down through generations.",
+		type: "website",
+	},
+};
 
 const values = [
 	{

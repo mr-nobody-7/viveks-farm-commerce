@@ -1,12 +1,15 @@
 "use client";
 
+import { Loader2 } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import { AdminTableSkeleton } from "@/components/Skeletons";
 import { Button } from "@/components/ui/button";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const ITEMS_PER_PAGE = 15;
 
 interface Category {
 	_id: string;
@@ -53,6 +56,9 @@ export default function AdminProductsPage() {
 	const [showModal, setShowModal] = useState(false);
 	const [editingProduct, setEditingProduct] = useState<Product | null>(null);
 	const [uploading, setUploading] = useState(false);
+	const [submitting, setSubmitting] = useState(false);
+	const [togglingId, setTogglingId] = useState<string | null>(null);
+	const [page, setPage] = useState(1);
 	const [formData, setFormData] = useState({
 		name: "",
 		description: "",
@@ -165,7 +171,7 @@ export default function AdminProductsPage() {
 			setFormData({ ...formData, images: [...formData.images, data.url] });
 		} catch (err) {
 			console.error("Error uploading image:", err);
-			alert("Failed to upload image");
+			toast.error("Failed to upload image");
 		} finally {
 			setUploading(false);
 		}
@@ -225,17 +231,18 @@ export default function AdminProductsPage() {
 		});
 
 		if (sanitizedVariants.length === 0) {
-			alert("Please add at least one variant");
+			toast.error("Please add at least one variant");
 			return;
 		}
 
 		if (
 			sanitizedVariants.some((variant) => !variant.label || variant.price <= 0)
 		) {
-			alert("Each variant needs a label and a valid selling price");
+			toast.error("Each variant needs a label and a valid selling price");
 			return;
 		}
 
+		setSubmitting(true);
 		try {
 			const url = editingProduct
 				? `${API_URL}/api/admin/products/${editingProduct._id}`
@@ -251,17 +258,30 @@ export default function AdminProductsPage() {
 				}),
 			});
 
-			if (!res.ok) throw new Error("Failed to save product");
+			if (!res.ok) {
+				const data = await res.json().catch(() => ({}));
+				throw new Error(data.message || "Failed to save product");
+			}
 
 			await fetchProducts();
 			handleCloseModal();
+			toast.success(
+				editingProduct
+					? "Product updated successfully"
+					: "Product created successfully",
+			);
 		} catch (err) {
 			console.error("Error saving product:", err);
-			alert("Failed to save product");
+			toast.error(
+				err instanceof Error ? err.message : "Failed to save product",
+			);
+		} finally {
+			setSubmitting(false);
 		}
 	};
 
 	const handleToggleActive = async (productId: string, isActive: boolean) => {
+		setTogglingId(productId);
 		try {
 			const res = await fetch(`${API_URL}/api/admin/products/${productId}`, {
 				method: "PATCH",
@@ -270,12 +290,20 @@ export default function AdminProductsPage() {
 				body: JSON.stringify({ isActive: !isActive }),
 			});
 
-			if (!res.ok) throw new Error("Failed to update product");
+			if (!res.ok) {
+				const data = await res.json().catch(() => ({}));
+				throw new Error(data.message || "Failed to update product");
+			}
 
 			await fetchProducts();
+			toast.success(isActive ? "Product disabled" : "Product enabled");
 		} catch (err) {
 			console.error("Error toggling product:", err);
-			alert("Failed to update product");
+			toast.error(
+				err instanceof Error ? err.message : "Failed to update product",
+			);
+		} finally {
+			setTogglingId(null);
 		}
 	};
 
@@ -297,6 +325,12 @@ export default function AdminProductsPage() {
 		return matchesSearch && matchesCategory && matchesStatus;
 	});
 
+	const totalPages = Math.ceil(filteredProducts.length / ITEMS_PER_PAGE);
+	const paginatedProducts = filteredProducts.slice(
+		(page - 1) * ITEMS_PER_PAGE,
+		page * ITEMS_PER_PAGE,
+	);
+
 	return (
 		<div className="space-y-6">
 			<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -309,13 +343,19 @@ export default function AdminProductsPage() {
 				<input
 					type="text"
 					value={searchQuery}
-					onChange={(e) => setSearchQuery(e.target.value)}
+					onChange={(e) => {
+						setSearchQuery(e.target.value);
+						setPage(1);
+					}}
 					placeholder="Search products..."
 					className="px-3 py-2 border border-gray-300 rounded-md text-sm flex-1 min-w-40"
 				/>
 				<select
 					value={categoryFilter}
-					onChange={(e) => setCategoryFilter(e.target.value)}
+					onChange={(e) => {
+						setCategoryFilter(e.target.value);
+						setPage(1);
+					}}
 					className="px-3 py-2 border border-gray-300 rounded-md text-sm"
 				>
 					<option value="ALL">All Categories</option>
@@ -327,9 +367,10 @@ export default function AdminProductsPage() {
 				</select>
 				<select
 					value={statusFilter}
-					onChange={(e) =>
-						setStatusFilter(e.target.value as "ALL" | "ACTIVE" | "INACTIVE")
-					}
+					onChange={(e) => {
+						setStatusFilter(e.target.value as "ALL" | "ACTIVE" | "INACTIVE");
+						setPage(1);
+					}}
 					className="px-3 py-2 border border-gray-300 rounded-md text-sm"
 				>
 					<option value="ALL">All Statuses</option>
@@ -345,6 +386,7 @@ export default function AdminProductsPage() {
 							setSearchQuery("");
 							setCategoryFilter("ALL");
 							setStatusFilter("ALL");
+							setPage(1);
 						}}
 						className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-50 hover:bg-gray-100"
 					>
@@ -389,7 +431,7 @@ export default function AdminProductsPage() {
 									</td>
 								</tr>
 							)}
-							{filteredProducts.map((product) => (
+							{paginatedProducts.map((product) => (
 								<tr key={product._id}>
 									<td className="px-6 py-4 whitespace-nowrap">
 										<div className="flex items-center">
@@ -451,15 +493,19 @@ export default function AdminProductsPage() {
 										</button>
 										<button
 											type="button"
+											disabled={togglingId === product._id}
 											onClick={() =>
 												handleToggleActive(product._id, product.isActive)
 											}
-											className={
+											className={`inline-flex items-center gap-1 ${
 												product.isActive
 													? "text-red-600 hover:text-red-900"
 													: "text-green-600 hover:text-green-900"
-											}
+											} disabled:opacity-50 disabled:cursor-not-allowed`}
 										>
+											{togglingId === product._id && (
+												<Loader2 className="h-3 w-3 animate-spin" />
+											)}
 											{product.isActive ? "Disable" : "Enable"}
 										</button>
 									</td>
@@ -468,11 +514,48 @@ export default function AdminProductsPage() {
 						</tbody>
 					</table>
 				</div>
+
+				{totalPages > 1 && (
+					<div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+						<p className="text-sm text-gray-700">
+							Showing{" "}
+							<span className="font-medium">
+								{(page - 1) * ITEMS_PER_PAGE + 1}
+							</span>
+							{" – "}
+							<span className="font-medium">
+								{Math.min(page * ITEMS_PER_PAGE, filteredProducts.length)}
+							</span>{" "}
+							of <span className="font-medium">{filteredProducts.length}</span>
+						</p>
+						<div className="flex items-center gap-2">
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => setPage((p) => p - 1)}
+								disabled={page === 1}
+							>
+								Prev
+							</Button>
+							<span className="text-sm text-gray-600">
+								{page} / {totalPages}
+							</span>
+							<Button
+								variant="outline"
+								size="sm"
+								onClick={() => setPage((p) => p + 1)}
+								disabled={page === totalPages}
+							>
+								Next
+							</Button>
+						</div>
+					</div>
+				)}
 			</div>
 
 			{/* Modal */}
 			{showModal && (
-				<div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 overflow-y-auto">
+				<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 overflow-y-auto p-4">
 					<div className="bg-white rounded-lg p-6 w-full max-w-2xl my-8">
 						<h2 className="text-xl font-bold mb-4">
 							{editingProduct ? "Edit Product" : "Add Product"}
@@ -695,11 +778,21 @@ export default function AdminProductsPage() {
 									type="button"
 									variant="outline"
 									onClick={handleCloseModal}
+									disabled={submitting}
 								>
 									Cancel
 								</Button>
-								<Button type="submit">
-									{editingProduct ? "Update" : "Create"}
+								<Button type="submit" disabled={submitting || uploading}>
+									{submitting ? (
+										<>
+											<Loader2 className="mr-2 h-4 w-4 animate-spin" />
+											Saving...
+										</>
+									) : editingProduct ? (
+										"Update"
+									) : (
+										"Create"
+									)}
 								</Button>
 							</div>
 						</form>

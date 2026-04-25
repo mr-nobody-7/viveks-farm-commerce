@@ -19,28 +19,50 @@ const geistMono = Geist_Mono({
 
 export const metadata: Metadata = {
 	title: {
-		default: "Vivek's Farm - Fresh Farm Products Delivered",
+		default: "Vivek's Farm | Pure & Natural Farm Products",
 		template: "%s | Vivek's Farm",
 	},
 	description:
-		"Shop 100% natural farm products including pure ghee, traditional pickles, honey, and homemade sweets. Directly from our fields to your kitchen with no preservatives or chemicals.",
+		"Shop 100% natural farm products — pure A2 ghee, handmade pickles, raw honey, cold-pressed oils, and traditional sweets. Farm fresh, no preservatives, pan-India delivery.",
 	keywords: [
-		"farm products",
-		"organic ghee",
-		"traditional pickles",
-		"natural honey",
-		"homemade sweets",
+		"A2 ghee",
 		"farm fresh",
+		"organic honey",
+		"cold pressed oils",
+		"handmade pickles",
+		"natural sweets",
+		"no preservatives",
+		"traditional recipes",
+		"bilona ghee",
+		"Vivek Farm",
 	],
 	authors: [{ name: "Vivek's Farm" }],
+	creator: "Vivek's Farm",
 	openGraph: {
 		type: "website",
 		locale: "en_IN",
 		siteName: "Vivek's Farm",
-		title: "Vivek's Farm - Fresh Farm Products Delivered",
+		title: "Vivek's Farm | Pure & Natural Farm Products",
 		description:
-			"100% natural farm products with no preservatives. Traditional recipes passed down through generations.",
+			"100% natural farm products — A2 ghee, pickles, honey, oils and sweets. No preservatives, traditional recipes, delivered across India.",
 	},
+	twitter: {
+		card: "summary_large_image",
+		title: "Vivek's Farm | Pure & Natural Farm Products",
+		description:
+			"Shop pure A2 ghee, raw honey, handmade pickles & more. Farm fresh, no chemicals, pan-India delivery.",
+	},
+	robots: {
+		index: true,
+		follow: true,
+		googleBot: {
+			index: true,
+			follow: true,
+			"max-snippet": -1,
+			"max-image-preview": "large",
+		},
+	},
+	category: "shopping",
 };
 
 export default function RootLayout({

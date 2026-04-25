@@ -6,7 +6,6 @@ import {
 	Bean,
 	Bug,
 	Candy,
-	ChevronDown,
 	CircleDot,
 	Cookie,
 	Droplets,

@@ -4,9 +4,12 @@ import { Package } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+import { toast } from "sonner";
 import { OrderCardSkeleton } from "@/components/Skeletons";
+import { Button } from "@/components/ui/button";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const ITEMS_PER_PAGE = 20;
 
 interface User {
 	_id: string;
@@ -81,6 +84,7 @@ export default function AdminOrdersPage() {
 		"newest" | "oldest" | "amount-high" | "amount-low"
 	>("newest");
 	const [updatingOrderId, setUpdatingOrderId] = useState<string | null>(null);
+	const [page, setPage] = useState(1);
 	const router = useRouter();
 
 	const fetchOrders = useCallback(async () => {
@@ -162,7 +166,8 @@ export default function AdminOrdersPage() {
 			);
 
 			if (!res.ok) {
-				throw new Error("Failed to update order status");
+				const data = await res.json().catch(() => ({}));
+				throw new Error(data.message || "Failed to update order status");
 			}
 
 			setOrders((prevOrders) =>
@@ -176,9 +181,12 @@ export default function AdminOrdersPage() {
 						: currentOrder,
 				),
 			);
+			toast.success(`Order status updated to ${nextStatus}`);
 		} catch (err) {
 			console.error("Error updating status:", err);
-			alert("Failed to update order status");
+			toast.error(
+				err instanceof Error ? err.message : "Failed to update order status",
+			);
 		} finally {
 			setUpdatingOrderId(null);
 		}
@@ -270,6 +278,12 @@ export default function AdminOrdersPage() {
 		return a.totalAmount - b.totalAmount;
 	});
 
+	const totalPages = Math.ceil(displayedOrders.length / ITEMS_PER_PAGE);
+	const paginatedOrders = displayedOrders.slice(
+		(page - 1) * ITEMS_PER_PAGE,
+		page * ITEMS_PER_PAGE,
+	);
+
 	return (
 		<div className="space-y-6">
 			<div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
@@ -282,7 +296,10 @@ export default function AdminOrdersPage() {
 			<div className="flex flex-wrap gap-2">
 				<button
 					type="button"
-					onClick={() => setActiveTab("ALL")}
+					onClick={() => {
+						setActiveTab("ALL");
+						setPage(1);
+					}}
 					className={`px-3 py-2 rounded-md text-sm font-medium ${
 						activeTab === "ALL"
 							? "bg-gray-800 text-white"
@@ -293,7 +310,10 @@ export default function AdminOrdersPage() {
 				</button>
 				<button
 					type="button"
-					onClick={() => setActiveTab("SUCCESS")}
+					onClick={() => {
+						setActiveTab("SUCCESS");
+						setPage(1);
+					}}
 					className={`px-3 py-2 rounded-md text-sm font-medium ${
 						activeTab === "SUCCESS"
 							? "bg-green-100 text-green-700"
@@ -304,7 +324,10 @@ export default function AdminOrdersPage() {
 				</button>
 				<button
 					type="button"
-					onClick={() => setActiveTab("FAILED")}
+					onClick={() => {
+						setActiveTab("FAILED");
+						setPage(1);
+					}}
 					className={`px-3 py-2 rounded-md text-sm font-medium ${
 						activeTab === "FAILED"
 							? "bg-red-100 text-red-700"
@@ -315,7 +338,10 @@ export default function AdminOrdersPage() {
 				</button>
 				<button
 					type="button"
-					onClick={() => setActiveTab("PENDING")}
+					onClick={() => {
+						setActiveTab("PENDING");
+						setPage(1);
+					}}
 					className={`px-3 py-2 rounded-md text-sm font-medium ${
 						activeTab === "PENDING"
 							? "bg-yellow-100 text-yellow-700"
@@ -423,6 +449,7 @@ export default function AdminOrdersPage() {
 						setDateFrom("");
 						setDateTo("");
 						setSortBy("newest");
+						setPage(1);
 					}}
 					className="px-3 py-2 border border-gray-300 rounded-md text-sm bg-gray-50 hover:bg-gray-100"
 				>
@@ -504,7 +531,7 @@ export default function AdminOrdersPage() {
 										</td>
 									</tr>
 								) : (
-									displayedOrders.map((order) => (
+									paginatedOrders.map((order) => (
 										<tr key={order._id} className="hover:bg-gray-50">
 											<td className="px-6 py-4 whitespace-nowrap text-sm font-mono text-gray-900">
 												#{order._id.slice(-8).toUpperCase()}
@@ -600,6 +627,43 @@ export default function AdminOrdersPage() {
 							</tbody>
 						</table>
 					</div>
+
+					{totalPages > 1 && (
+						<div className="flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-gray-200 bg-white px-4 py-3 sm:px-6">
+							<p className="text-sm text-gray-700">
+								Showing{" "}
+								<span className="font-medium">
+									{(page - 1) * ITEMS_PER_PAGE + 1}
+								</span>
+								{" – "}
+								<span className="font-medium">
+									{Math.min(page * ITEMS_PER_PAGE, displayedOrders.length)}
+								</span>{" "}
+								of <span className="font-medium">{displayedOrders.length}</span>
+							</p>
+							<div className="flex items-center gap-2">
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => setPage((p) => p - 1)}
+									disabled={page === 1}
+								>
+									Prev
+								</Button>
+								<span className="text-sm text-gray-600">
+									{page} / {totalPages}
+								</span>
+								<Button
+									variant="outline"
+									size="sm"
+									onClick={() => setPage((p) => p + 1)}
+									disabled={page === totalPages}
+								>
+									Next
+								</Button>
+							</div>
+						</div>
+					)}
 				</div>
 			)}
 		</div>

@@ -2,10 +2,12 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
+import { toast } from "sonner";
 import { AdminTableSkeleton } from "@/components/Skeletons";
 import { Button } from "@/components/ui/button";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL;
+const ITEMS_PER_PAGE = 10;
 
 type DiscountType = "PERCENTAGE" | "FIXED";
 
@@ -36,6 +38,7 @@ export default function AdminCouponsPage() {
 	const [saving, setSaving] = useState(false);
 	const [showModal, setShowModal] = useState(false);
 	const [editingCoupon, setEditingCoupon] = useState<Coupon | null>(null);
+	const [page, setPage] = useState(1);
 	const [formData, setFormData] = useState({
 		code: "",
 		description: "",
@@ -170,9 +173,16 @@ export default function AdminCouponsPage() {
 
 			await fetchData();
 			setShowModal(false);
+			toast.success(
+				editingCoupon
+					? "Coupon updated successfully"
+					: "Coupon created successfully",
+			);
 		} catch (error) {
 			console.error("Coupon save failed:", error);
-			alert("Failed to save coupon");
+			toast.error(
+				error instanceof Error ? error.message : "Failed to save coupon",
+			);
 		} finally {
 			setSaving(false);
 		}
@@ -186,6 +196,12 @@ export default function AdminCouponsPage() {
 	if (loading) {
 		return <AdminTableSkeleton rows={5} cols={6} />;
 	}
+
+	const totalPages = Math.ceil(coupons.length / ITEMS_PER_PAGE);
+	const paginatedCoupons = coupons.slice(
+		(page - 1) * ITEMS_PER_PAGE,
+		page * ITEMS_PER_PAGE,
+	);
 
 	return (
 		<div className="space-y-6">
@@ -235,7 +251,7 @@ export default function AdminCouponsPage() {
 									</td>
 								</tr>
 							)}
-							{coupons.map((coupon) => (
+							{paginatedCoupons.map((coupon) => (
 								<tr key={coupon._id}>
 									<td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">
 										{coupon.code}
@@ -278,6 +294,43 @@ export default function AdminCouponsPage() {
 					</table>
 				</div>
 			</div>
+
+			{totalPages > 1 && (
+				<div className="flex flex-col sm:flex-row items-center justify-between gap-3 border border-gray-200 bg-white px-4 py-3 sm:px-6 rounded-lg">
+					<p className="text-sm text-gray-700">
+						Showing{" "}
+						<span className="font-medium">
+							{(page - 1) * ITEMS_PER_PAGE + 1}
+						</span>
+						{" – "}
+						<span className="font-medium">
+							{Math.min(page * ITEMS_PER_PAGE, coupons.length)}
+						</span>{" "}
+						of <span className="font-medium">{coupons.length}</span>
+					</p>
+					<div className="flex items-center gap-2">
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => setPage((p) => p - 1)}
+							disabled={page === 1}
+						>
+							Prev
+						</Button>
+						<span className="text-sm text-gray-600">
+							{page} / {totalPages}
+						</span>
+						<Button
+							variant="outline"
+							size="sm"
+							onClick={() => setPage((p) => p + 1)}
+							disabled={page === totalPages}
+						>
+							Next
+						</Button>
+					</div>
+				</div>
+			)}
 
 			{showModal && (
 				<div className="fixed inset-0 bg-black/50 flex items-center justify-center z-50 p-4">
