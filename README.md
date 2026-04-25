@@ -642,7 +642,7 @@ BREVO_API_KEY=your_brevo_api_key
 ADMIN_EMAIL=admin@viveksfarm.com
 
 # CORS
-CORS_ORIGIN=http://localhost:3000
+CORS_ORIGIN=https://your-frontend-domain.com
 
 # Node Environment
 NODE_ENV=development
@@ -655,7 +655,7 @@ Create `apps/frontend/.env.local`:
 
 ```env
 # API URL
-NEXT_PUBLIC_API_URL=http://localhost:4000
+NEXT_PUBLIC_API_URL=https://your-backend-domain.com
 ```
 
 ### 4. Initialize Database
@@ -683,8 +683,8 @@ pnpm dev
 ```
 
 This starts:
-- 🎨 Frontend: http://localhost:3000
-- ⚡ Backend: http://localhost:4000
+- 🎨 Frontend: NEXT_PUBLIC_SITE_URL (example: https://your-frontend-domain.com)
+- ⚡ Backend: NEXT_PUBLIC_API_URL (example: https://your-backend-domain.com)
 
 ### Individual App Development
 
@@ -692,12 +692,12 @@ This starts:
 # Frontend only
 cd apps/frontend
 pnpm dev
-# → http://localhost:3000
+# → Use your configured frontend URL
 
 # Backend only
 cd apps/backend
 pnpm dev
-# → http://localhost:4000
+# → Use your configured backend URL
 ```
 
 ### Code Quality
@@ -731,9 +731,7 @@ cd apps/backend && pnpm build
 ## 🔌 API Endpoints
 
 ### Base URL
-```
-http://localhost:4000/api
-```
+Use NEXT_PUBLIC_API_URL + /api
 
 ### Authentication Routes
 
@@ -977,7 +975,7 @@ http://localhost:4000/api
 | `RAZORPAY_KEY_SECRET` | ✅ | `rzp_secret` | Payment verification |
 | `BREVO_API_KEY` | ✅ | `api_key_here` | Email notifications |
 | `ADMIN_EMAIL` | ✅ | `admin@viveksfarm.com` | Admin inbox for alerts |
-| `CORS_ORIGIN` | ✅ | `http://localhost:3000` | CORS whitelist |
+| `CORS_ORIGIN` | ✅ | `https://your-frontend-domain.com` | CORS whitelist |
 | `NODE_ENV` | ✅ | `development` | Environment |
 | `PORT` | ❌ | `4000` | Server port (default 4000) |
 
@@ -985,7 +983,7 @@ http://localhost:4000/api
 
 | Variable | Required | Example | Purpose |
 |----------|----------|---------|---------|
-| `NEXT_PUBLIC_API_URL` | ✅ | `http://localhost:4000` | Backend API URL |
+| `NEXT_PUBLIC_API_URL` | ✅ | `https://your-backend-domain.com` | Backend API URL |
 
 ---
 

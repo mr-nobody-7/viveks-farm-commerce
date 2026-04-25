@@ -27,8 +27,8 @@ Vivek's Farm Commerce is a full-stack e-commerce platform for selling farm produ
 pnpm dev
 
 # Individual apps
-cd apps/frontend && pnpm dev  # → http://localhost:3000
-cd apps/backend && pnpm dev   # → http://localhost:4000
+cd apps/frontend && pnpm dev  # → Frontend URL from your environment
+cd apps/backend && pnpm dev   # → Backend URL from your environment
 ```
 
 ### Code Quality
